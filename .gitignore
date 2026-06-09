@@ -43,3 +43,23 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Claude Code
+CLAUDE.md
+.claude/
+
+# Assets (imagens de terceiros — não commitar sem autorização)
+assets/
+
+# Environment / secrets
+.env
+.env.*
+*.env
+google-services.json
+GoogleService-Info.plist
+keystore.jks
+*.keystore
+*.p12
+*.pfx
+key.properties
+/android/key.properties

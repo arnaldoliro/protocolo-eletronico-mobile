@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'core/theme/app_theme.dart';
+import 'features/login/screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,12 +12,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Protocolo Eletronico',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: Scaffold(
-        appBar: AppBar(),
-        body: Center(child: Text("Hello World!")),
-      ),
+      title: 'Protocolo Eletrônico',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.dark,
+      home: const LoginScreen(),
     );
   }
 }
