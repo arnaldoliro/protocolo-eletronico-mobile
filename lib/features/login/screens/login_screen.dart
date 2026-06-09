@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/mock/auth_mock_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../../home/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthMockService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -57,15 +61,20 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // TODO: substituir pela chamada real ao backend
-      await Future.delayed(const Duration(seconds: 2));
+      final user = await _authService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
-      // Simulação de erro do backend — remover quando integrar a API
-      throw Exception('Credenciais inválidas');
-    } catch (e) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen(user: user)),
+      );
+    } catch (_) {
       setState(() => _loginError = 'E-mail ou senha incorretos');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
