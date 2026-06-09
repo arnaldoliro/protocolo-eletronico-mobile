@@ -9,22 +9,24 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
     return Row(
       children: [
         CircleAvatar(
           radius: 24,
-          backgroundColor: AppColors.inputFill,
+          backgroundColor: colors.primary.withValues(alpha: 0.15),
           backgroundImage:
               user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
           child: user.photoUrl == null
-              ? const Icon(Icons.person, color: AppColors.inputText)
+              ? Icon(Icons.person, color: colors.primary)
               : null,
         ),
         const SizedBox(width: 12),
         Text(
           user.name,
-          style: const TextStyle(
-            color: AppColors.primary,
+          style: TextStyle(
+            color: colors.inputText,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),

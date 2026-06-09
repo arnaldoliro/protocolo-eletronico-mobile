@@ -80,6 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -90,12 +92,16 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 height: 160,
                 decoration: BoxDecoration(
-                  color: AppColors.inputFill.withValues(alpha: 0.1),
+                  color: colors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  child: Image.asset('assets/images/logo_ilheus.jpeg'),
+                  child: Image.asset(
+                    Theme.of(context).brightness == Brightness.light
+                        ? 'assets/images/logo_ilheus_light.png'
+                        : 'assets/images/logo_ilheus_dark.jpeg',
+                  ),
                 ),
               ),
               const SizedBox(height: 48),
@@ -126,12 +132,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.inputText,
-                    disabledBackgroundColor: AppColors.primary.withValues(
-                      alpha: 0.5,
-                    ),
+                    backgroundColor: colors.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: colors.primary.withValues(alpha: 0.5),
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 4,
+                    shadowColor: colors.primary.withValues(alpha: 0.4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -142,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppColors.inputText,
+                            color: Colors.white,
                           ),
                         )
                       : const Text('Entrar'),
@@ -151,16 +157,16 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {},
-                child: const Text(
+                child: Text(
                   'Esqueceu a senha?',
-                  style: TextStyle(color: AppColors.textMuted),
+                  style: TextStyle(color: colors.textMuted),
                 ),
               ),
               TextButton(
                 onPressed: () {},
-                child: const Text(
+                child: Text(
                   'Cadastre-se',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: colors.primary),
                 ),
               ),
             ],
