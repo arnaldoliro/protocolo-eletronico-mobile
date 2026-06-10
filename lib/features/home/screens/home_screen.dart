@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/user_model.dart';
+import '../widgets/bottom_nav_bar.dart';
 import '../widgets/home_header.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,6 +11,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const BottomNavBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

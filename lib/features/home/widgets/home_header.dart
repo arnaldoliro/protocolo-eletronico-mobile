@@ -12,25 +12,32 @@ class HomeHeader extends StatelessWidget {
     final colors = AppColors.of(context);
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: colors.primary.withValues(alpha: 0.15),
-          backgroundImage:
-              user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
-          child: user.photoUrl == null
-              ? Icon(Icons.person, color: colors.primary)
-              : null,
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: colors.primary.withValues(alpha: 0.15),
+              backgroundImage: user.photoUrl != null
+                  ? NetworkImage(user.photoUrl!)
+                  : null,
+              child: user.photoUrl == null
+                  ? Icon(Icons.person, color: colors.primary)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              "Olá, ${user.name}",
+              style: TextStyle(
+                color: colors.inputText,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Text(
-          user.name,
-          style: TextStyle(
-            color: colors.inputText,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        Icon(Icons.notifications_none),
       ],
     );
   }
