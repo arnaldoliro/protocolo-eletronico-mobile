@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/mock/auth_mock_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../../home/screens/home_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthMockService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -57,20 +61,27 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // TODO: substituir pela chamada real ao backend
-      await Future.delayed(const Duration(seconds: 2));
+      final user = await _authService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
-      // Simulação de erro do backend — remover quando integrar a API
-      throw Exception('Credenciais inválidas');
-    } catch (e) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeShell(user: user)),
+      );
+    } catch (_) {
       setState(() => _loginError = 'E-mail ou senha incorretos');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -78,17 +89,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 160,
-                decoration: BoxDecoration(
-                  color: AppColors.inputFill.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  child: Image.asset('assets/images/logo_ilheus.jpeg'),
-                ),
-              ),
               const SizedBox(height: 48),
               CustomTextField(
                 label: 'E-mail',
@@ -117,12 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.inputText,
-                    disabledBackgroundColor: AppColors.primary.withValues(
-                      alpha: 0.5,
-                    ),
+                    backgroundColor: colors.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: colors.primary.withValues(alpha: 0.5),
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 4,
+                    shadowColor: colors.primary.withValues(alpha: 0.4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppColors.inputText,
+                            color: Colors.white,
                           ),
                         )
                       : const Text('Entrar'),
@@ -142,16 +142,16 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {},
-                child: const Text(
+                child: Text(
                   'Esqueceu a senha?',
-                  style: TextStyle(color: AppColors.textMuted),
+                  style: TextStyle(color: colors.textMuted),
                 ),
               ),
               TextButton(
                 onPressed: () {},
-                child: const Text(
+                child: Text(
                   'Cadastre-se',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: colors.primary),
                 ),
               ),
             ],
