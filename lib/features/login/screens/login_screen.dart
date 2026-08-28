@@ -3,7 +3,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/mock/auth_mock_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_text_field.dart';
-import '../../home/screens/home_screen.dart';
+import '../../home/screens/home_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen(user: user)),
+        MaterialPageRoute(builder: (_) => HomeShell(user: user)),
       );
     } catch (_) {
       setState(() => _loginError = 'E-mail ou senha incorretos');
@@ -89,21 +89,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 160,
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  child: Image.asset(
-                    Theme.of(context).brightness == Brightness.light
-                        ? 'assets/images/logo_ilheus_light.png'
-                        : 'assets/images/logo_ilheus_dark.jpeg',
-                  ),
-                ),
-              ),
               const SizedBox(height: 48),
               CustomTextField(
                 label: 'E-mail',

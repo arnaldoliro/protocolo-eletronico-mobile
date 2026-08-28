@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_preferences_scope.dart';
+
 class AppColors {
   // Fundos
   final Color background;
@@ -140,8 +142,81 @@ class AppColors {
     statusError: Color(0xFFD4183D),
   );
 
+  // Variante de alto contraste (acessibilidade). Mesmo shape/tokens das
+  // paletas padrão, com pares texto/fundo em preto e branco puros e cores
+  // de status mais saturadas para atender uma taxa de contraste maior.
+  static const highContrastLight = AppColors._(
+    background: Color(0xFFFFFFFF),
+    protocolBg: Color(0xFFFFFFFF),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    cardBorder: Color(0xFF000000),
+    cardShadow: [
+      BoxShadow(color: Color(0x33000000), blurRadius: 12, offset: Offset(0, 2)),
+    ],
+    primary: Color(0xFF0B4DE0),
+    primaryMedium: Color(0xFF063C9E),
+    navy: Color(0xFF000000),
+    inputText: Color(0xFF000000),
+    textSecondary: Color(0xFF111111),
+    textMuted: Color(0xFF333333),
+    textTime: Color(0xFF333333),
+    inputFill: Color(0xFFFFFFFF),
+    inputBorder: Color(0xFF000000),
+    iconBorder: Color(0xFF0B4DE0),
+    navBg: Color(0xFFFFFFFF),
+    navBorder: Color(0xFF000000),
+    navActive: Color(0xFFD6E4FF),
+    navInactive: Color(0xFF333333),
+    navShadow: [
+      BoxShadow(color: Color(0x33000000), blurRadius: 16, offset: Offset(0, -2)),
+    ],
+    statusSuccess: Color(0xFF046C4E),
+    statusSuccessBg: Color(0xFFFFFFFF),
+    statusPending: Color(0xFF92400E),
+    statusPendingBg: Color(0xFFFFFFFF),
+    statusError: Color(0xFFB91C1C),
+  );
+
+  static const highContrastDark = AppColors._(
+    background: Color(0xFF000000),
+    protocolBg: Color(0xFF000000),
+    surface: Color(0xFF000000),
+    cardBackground: Color(0xFF000000),
+    cardBorder: Color(0xFFFFFFFF),
+    cardShadow: [
+      BoxShadow(color: Color(0x99000000), blurRadius: 12, offset: Offset(0, 2)),
+    ],
+    primary: Color(0xFF6FA8FF),
+    primaryMedium: Color(0xFF8FBBFF),
+    navy: Color(0xFFFFFFFF),
+    inputText: Color(0xFFFFFFFF),
+    textSecondary: Color(0xFFEEEEEE),
+    textMuted: Color(0xFFCCCCCC),
+    textTime: Color(0xFFCCCCCC),
+    inputFill: Color(0xFF000000),
+    inputBorder: Color(0xFFFFFFFF),
+    iconBorder: Color(0xFF6FA8FF),
+    navBg: Color(0xFF000000),
+    navBorder: Color(0xFFFFFFFF),
+    navActive: Color(0xFF13284D),
+    navInactive: Color(0xFFCCCCCC),
+    navShadow: [
+      BoxShadow(color: Color(0xCC000000), blurRadius: 16, offset: Offset(0, -2)),
+    ],
+    statusSuccess: Color(0xFF34D399),
+    statusSuccessBg: Color(0xFF000000),
+    statusPending: Color(0xFFFBBF24),
+    statusPendingBg: Color(0xFF000000),
+    statusError: Color(0xFFF87171),
+  );
+
   static AppColors of(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.light ? light : dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final highContrast = AppPreferencesScope.maybeOf(context)?.highContrast ?? false;
+
+    if (highContrast) return isDark ? highContrastDark : highContrastLight;
+    return isDark ? dark : light;
   }
 }
 
