@@ -3,6 +3,7 @@ import 'core/theme/app_preferences_controller.dart';
 import 'core/theme/app_preferences_scope.dart';
 import 'core/theme/app_theme.dart';
 import 'features/login/screens/login_screen.dart';
+import 'features/register/screens/register_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,9 +36,12 @@ class MyApp extends StatelessWidget {
         );
       },
       home: const LoginScreen(),
-      // Rota nomeada para o logout voltar ao login sem que a feature
-      // "home" precise importar a feature "login" (evita ciclo).
-      routes: {'/login': (_) => const LoginScreen()},
+      // Rotas nomeadas para uma feature navegar até outra sem import
+      // cruzado entre features (evita ciclos).
+      routes: {
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
+      },
     );
   }
 }
