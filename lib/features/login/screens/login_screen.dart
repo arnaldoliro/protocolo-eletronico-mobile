@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/register'),
                 child: Text(
                   'Cadastre-se',
                   style: TextStyle(color: colors.primary),
