@@ -65,8 +65,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
           borderSide: BorderSide(color: colors.inputBorder),
           borderRadius: BorderRadius.circular(20),
         ),
+        // Antes usava inputBorder: focar o campo não mudava nada na tela.
+        // Alinhado com appInputDecoration, que usa primary no foco.
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colors.inputBorder),
+          borderSide: BorderSide(color: colors.primary),
           borderRadius: BorderRadius.circular(20),
         ),
         suffixIcon: widget.obscureText

@@ -8,13 +8,14 @@ import '../../../core/services/mock/company_mock_service.dart';
 import '../../../core/services/mock/register_mock_service.dart';
 import '../../../core/services/register_service.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/auth_background.dart';
+import '../../../core/widgets/auth_card_header.dart';
 import '../../../core/utils/masked_input_formatter.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/labeled_dropdown.dart';
 import '../../../core/widgets/labeled_text_field.dart';
 import '../../home/screens/home_shell.dart';
 import '../widgets/field_action_button.dart';
-import '../widgets/register_header.dart';
 import '../widgets/registration_type_toggle.dart';
 import '../widgets/section_header.dart';
 import '../widgets/terms_checkbox.dart';
@@ -379,381 +380,382 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.cardBorder),
-                  boxShadow: colors.cardShadow,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const RegisterHeader(),
-                    const SizedBox(height: 24),
+    return AuthBackground(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colors.cardBorder),
+                boxShadow: colors.cardShadow,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AuthCardHeader(
+                    icon: Icons.person_add_alt_1,
+                    title: 'Criar conta',
+                    subtitle: 'Cadastre-se para abrir e acompanhar protocolos',
+                  ),
+                  const SizedBox(height: 24),
 
-                    const SectionHeader(title: 'Tipo de cadastro', isRequired: true),
-                    const SizedBox(height: 8),
-                    RegistrationTypeToggle(
-                      selected: _type,
-                      onChanged: _onTypeChanged,
-                    ),
-                    const SizedBox(height: 16),
+                  const SectionHeader(title: 'Tipo de cadastro', isRequired: true),
+                  const SizedBox(height: 8),
+                  RegistrationTypeToggle(
+                    selected: _type,
+                    onChanged: _onTypeChanged,
+                  ),
+                  const SizedBox(height: 16),
 
-                    // Pessoa Jurídica antepõe CNPJ e razão social; os campos
-                    // seguintes passam a ser do responsável legal.
-                    if (_isCompany) ...[
-                      LabeledTextField(
-                        label: 'CNPJ',
-                        isRequired: true,
-                        hint: '00.000.000/0000-00',
-                        prefixIcon: Icons.apartment,
-                        controller: _cnpjController,
-                        errorText: _errors[RegisterField.cnpj],
-                        keyboardType: TextInputType.number,
-                        inputFormatters: const [
-                          MaskedInputFormatter(InputMasks.cnpj),
-                        ],
-                        suggestionsEnabled: false,
-                        onChanged: (_) {
-                          _clearError(RegisterField.cnpj);
-                          // Reavalia se "Consultar" pode ser habilitado.
-                          setState(() {});
-                        },
-                        trailing: FieldActionButton(
-                          label: 'Consultar',
-                          enabled: _canSearchCnpj,
-                          isLoading: _isSearchingCnpj,
-                          onPressed: _searchCnpj,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      LabeledTextField(
-                        label: 'Razão social',
-                        isRequired: true,
-                        hint: 'Razão social da empresa',
-                        prefixIcon: Icons.business_outlined,
-                        controller: _companyNameController,
-                        errorText: _errors[RegisterField.companyName],
-                        textCapitalization: TextCapitalization.words,
-                        onChanged: (_) => _clearError(RegisterField.companyName),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-
+                  // Pessoa Jurídica antepõe CNPJ e razão social; os campos
+                  // seguintes passam a ser do responsável legal.
+                  if (_isCompany) ...[
                     LabeledTextField(
-                      label: _isCompany ? 'Nome do responsável' : 'Nome completo',
+                      label: 'CNPJ',
                       isRequired: true,
-                      hint: _isCompany
-                          ? 'Responsável legal pela empresa'
-                          : 'Como aparece nos seus documentos',
-                      prefixIcon: Icons.badge_outlined,
-                      controller: _nameController,
-                      errorText: _errors[RegisterField.name],
-                      textCapitalization: TextCapitalization.words,
-                      autofillHints: const [AutofillHints.name],
-                      onChanged: (_) => _clearError(RegisterField.name),
-                    ),
-                    const SizedBox(height: 14),
-
-                    LabeledTextField(
-                      label: _isCompany ? 'CPF do responsável' : 'CPF',
-                      isRequired: true,
-                      hint: '000.000.000-00',
-                      prefixIcon: Icons.credit_card,
-                      controller: _cpfController,
-                      errorText: _errors[RegisterField.cpf],
+                      hint: '00.000.000/0000-00',
+                      prefixIcon: Icons.apartment,
+                      controller: _cnpjController,
+                      errorText: _errors[RegisterField.cnpj],
                       keyboardType: TextInputType.number,
                       inputFormatters: const [
-                        MaskedInputFormatter(InputMasks.cpf),
+                        MaskedInputFormatter(InputMasks.cnpj),
                       ],
-                      // CPF é dado sensível: sem sugestão nem autocorreção.
                       suggestionsEnabled: false,
-                      onChanged: (_) => _clearError(RegisterField.cpf),
-                    ),
-                    const SizedBox(height: 14),
-
-                    LabeledTextField(
-                      label: 'E-mail',
-                      isRequired: true,
-                      hint: 'seu@email.com',
-                      prefixIcon: Icons.mail_outline,
-                      controller: _emailController,
-                      errorText: _errors[RegisterField.email],
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email],
-                      onChanged: (_) => _clearError(RegisterField.email),
-                    ),
-                    const SizedBox(height: 14),
-
-                    LabeledTextField(
-                      label: 'Celular',
-                      isRequired: true,
-                      hint: '(00) 00000-0000',
-                      helperText: 'Celular com DDD, 11 dígitos.',
-                      prefixIcon: Icons.smartphone,
-                      controller: _phoneController,
-                      errorText: _errors[RegisterField.phone],
-                      keyboardType: TextInputType.number,
-                      inputFormatters: const [
-                        MaskedInputFormatter(InputMasks.phone),
-                      ],
-                      autofillHints: const [AutofillHints.telephoneNumber],
-                      onChanged: (_) => _clearError(RegisterField.phone),
-                    ),
-                    const SizedBox(height: 14),
-
-                    LabeledTextField(
-                      label: 'Senha',
-                      isRequired: true,
-                      hint: 'Mínimo 8 caracteres',
-                      helperText: 'Combine letras maiúsculas, minúsculas e números.',
-                      prefixIcon: Icons.lock_outline,
-                      controller: _passwordController,
-                      errorText: _errors[RegisterField.password],
-                      obscureText: true,
-                      suggestionsEnabled: false,
-                      onChanged: (_) => _clearError(RegisterField.password),
-                    ),
-                    const SizedBox(height: 14),
-
-                    LabeledTextField(
-                      label: 'Confirme a senha',
-                      isRequired: true,
-                      hint: 'Repita a senha',
-                      prefixIcon: Icons.lock_outline,
-                      controller: _confirmPasswordController,
-                      errorText: _errors[RegisterField.confirmPassword],
-                      obscureText: true,
-                      suggestionsEnabled: false,
-                      onChanged: (_) => _clearError(RegisterField.confirmPassword),
-                    ),
-                    const SizedBox(height: 20),
-
-                    const SectionHeader(title: 'Endereço', isRequired: true),
-                    const SizedBox(height: 12),
-
-                    LabeledTextField(
-                      label: 'CEP',
-                      isRequired: true,
-                      hint: '00000-000',
-                      prefixIcon: Icons.location_on_outlined,
-                      controller: _cepController,
-                      errorText: _errors[RegisterField.cep],
-                      keyboardType: TextInputType.number,
-                      inputFormatters: const [
-                        MaskedInputFormatter(InputMasks.cep),
-                      ],
-                      autofillHints: const [AutofillHints.postalCode],
                       onChanged: (_) {
-                        _clearError(RegisterField.cep);
-                        // Reavalia se o botão Buscar pode ser habilitado.
+                        _clearError(RegisterField.cnpj);
+                        // Reavalia se "Consultar" pode ser habilitado.
                         setState(() {});
                       },
                       trailing: FieldActionButton(
-                        label: 'Buscar',
-                        enabled: _canSearchCep,
-                        isLoading: _isSearchingCep,
-                        onPressed: _searchCep,
+                        label: 'Consultar',
+                        enabled: _canSearchCnpj,
+                        isLoading: _isSearchingCnpj,
+                        onPressed: _searchCnpj,
                       ),
                     ),
                     const SizedBox(height: 14),
-
                     LabeledTextField(
-                      label: 'Logradouro',
+                      label: 'Razão social',
                       isRequired: true,
-                      prefixIcon: Icons.home_outlined,
-                      controller: _streetController,
-                      errorText: _errors[RegisterField.street],
+                      hint: 'Razão social da empresa',
+                      prefixIcon: Icons.business_outlined,
+                      controller: _companyNameController,
+                      errorText: _errors[RegisterField.companyName],
                       textCapitalization: TextCapitalization.words,
-                      onChanged: (_) => _clearError(RegisterField.street),
+                      onChanged: (_) => _clearError(RegisterField.companyName),
                     ),
                     const SizedBox(height: 14),
-
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: LabeledTextField(
-                            label: 'Número',
-                            isRequired: true,
-                            controller: _numberController,
-                            errorText: _errors[RegisterField.number],
-                            keyboardType: TextInputType.text,
-                            onChanged: (_) => _clearError(RegisterField.number),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: LabeledTextField(
-                            label: 'Complemento',
-                            controller: _complementController,
-                            textCapitalization: TextCapitalization.words,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    LabeledTextField(
-                      label: 'Bairro',
-                      isRequired: true,
-                      controller: _neighborhoodController,
-                      errorText: _errors[RegisterField.neighborhood],
-                      textCapitalization: TextCapitalization.words,
-                      onChanged: (_) => _clearError(RegisterField.neighborhood),
-                    ),
-                    const SizedBox(height: 14),
-
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: LabeledDropdown<String>(
-                            label: 'UF',
-                            isRequired: true,
-                            hint: 'Selecione a UF',
-                            value: _selectedStateCode,
-                            errorText: _errors[RegisterField.state],
-                            items: brazilianStates
-                                .map(
-                                  (state) => DropdownMenuItem(
-                                    value: state.code,
-                                    child: Text('${state.code} - ${state.name}'),
-                                  ),
-                                )
-                                .toList(),
-                            // Com o menu fechado mostra só a sigla: o nome
-                            // completo estoura a meia largura com fonte grande.
-                            selectedItemBuilder: (_) => brazilianStates
-                                .map(
-                                  (state) => Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(state.code),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: _isSubmitting ? null : _onStateChanged,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: LabeledDropdown<String>(
-                            label: 'Cidade',
-                            isRequired: true,
-                            hint: _selectedStateCode == null
-                                ? 'Selecione a UF primeiro'
-                                : 'Selecione a cidade',
-                            value: _selectedCity,
-                            errorText: _errors[RegisterField.city],
-                            isLoading: _loadingCities,
-                            items: _cities
-                                .map(
-                                  (city) => DropdownMenuItem(
-                                    value: city,
-                                    child: Text(
-                                      city,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged:
-                                _selectedStateCode == null || _isSubmitting
-                                ? null
-                                : (city) => setState(() {
-                                    _selectedCity = city;
-                                    _errors[RegisterField.city] = null;
-                                  }),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    TermsCheckbox(
-                      value: _acceptedTerms,
-                      errorText: _errors[RegisterField.terms],
-                      onChanged: (value) => setState(() {
-                        _acceptedTerms = value;
-                        _errors[RegisterField.terms] = null;
-                      }),
-                    ),
-                    const SizedBox(height: 16),
-
-                    if (_submitError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          _submitError!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: colors.statusError),
-                        ),
-                      ),
-
-                    ElevatedButton.icon(
-                      onPressed: _isSubmitting ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.primary,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor:
-                            colors.primary.withValues(alpha: 0.5),
-                        disabledForegroundColor:
-                            Colors.white.withValues(alpha: 0.7),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        elevation: 4,
-                        shadowColor: colors.primary.withValues(alpha: 0.4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: _isSubmitting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.person_add_alt_1, size: 20),
-                      label: Text(_isSubmitting ? 'Criando...' : 'Criar conta'),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Já tenho conta — ',
-                          style: TextStyle(color: colors.textMuted, fontSize: 13),
-                        ),
-                        GestureDetector(
-                          onTap: _isSubmitting ? null : _goToLogin,
-                          child: Text(
-                            'entrar',
-                            style: TextStyle(
-                              color: colors.primary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
-                ),
+
+                  LabeledTextField(
+                    label: _isCompany ? 'Nome do responsável' : 'Nome completo',
+                    isRequired: true,
+                    hint: _isCompany
+                        ? 'Responsável legal pela empresa'
+                        : 'Como aparece nos seus documentos',
+                    prefixIcon: Icons.badge_outlined,
+                    controller: _nameController,
+                    errorText: _errors[RegisterField.name],
+                    textCapitalization: TextCapitalization.words,
+                    autofillHints: const [AutofillHints.name],
+                    onChanged: (_) => _clearError(RegisterField.name),
+                  ),
+                  const SizedBox(height: 14),
+
+                  LabeledTextField(
+                    label: _isCompany ? 'CPF do responsável' : 'CPF',
+                    isRequired: true,
+                    hint: '000.000.000-00',
+                    prefixIcon: Icons.credit_card,
+                    controller: _cpfController,
+                    errorText: _errors[RegisterField.cpf],
+                    keyboardType: TextInputType.number,
+                    inputFormatters: const [
+                      MaskedInputFormatter(InputMasks.cpf),
+                    ],
+                    // CPF é dado sensível: sem sugestão nem autocorreção.
+                    suggestionsEnabled: false,
+                    onChanged: (_) => _clearError(RegisterField.cpf),
+                  ),
+                  const SizedBox(height: 14),
+
+                  LabeledTextField(
+                    label: 'E-mail',
+                    isRequired: true,
+                    hint: 'seu@email.com',
+                    prefixIcon: Icons.mail_outline,
+                    controller: _emailController,
+                    errorText: _errors[RegisterField.email],
+                    keyboardType: TextInputType.emailAddress,
+                    autofillHints: const [AutofillHints.email],
+                    onChanged: (_) => _clearError(RegisterField.email),
+                  ),
+                  const SizedBox(height: 14),
+
+                  LabeledTextField(
+                    label: 'Celular',
+                    isRequired: true,
+                    hint: '(00) 00000-0000',
+                    helperText: 'Celular com DDD, 11 dígitos.',
+                    prefixIcon: Icons.smartphone,
+                    controller: _phoneController,
+                    errorText: _errors[RegisterField.phone],
+                    keyboardType: TextInputType.number,
+                    inputFormatters: const [
+                      MaskedInputFormatter(InputMasks.phone),
+                    ],
+                    autofillHints: const [AutofillHints.telephoneNumber],
+                    onChanged: (_) => _clearError(RegisterField.phone),
+                  ),
+                  const SizedBox(height: 14),
+
+                  LabeledTextField(
+                    label: 'Senha',
+                    isRequired: true,
+                    hint: 'Mínimo 8 caracteres',
+                    helperText: 'Combine letras maiúsculas, minúsculas e números.',
+                    prefixIcon: Icons.lock_outline,
+                    controller: _passwordController,
+                    errorText: _errors[RegisterField.password],
+                    obscureText: true,
+                    suggestionsEnabled: false,
+                    onChanged: (_) => _clearError(RegisterField.password),
+                  ),
+                  const SizedBox(height: 14),
+
+                  LabeledTextField(
+                    label: 'Confirme a senha',
+                    isRequired: true,
+                    hint: 'Repita a senha',
+                    prefixIcon: Icons.lock_outline,
+                    controller: _confirmPasswordController,
+                    errorText: _errors[RegisterField.confirmPassword],
+                    obscureText: true,
+                    suggestionsEnabled: false,
+                    onChanged: (_) => _clearError(RegisterField.confirmPassword),
+                  ),
+                  const SizedBox(height: 20),
+
+                  const SectionHeader(title: 'Endereço', isRequired: true),
+                  const SizedBox(height: 12),
+
+                  LabeledTextField(
+                    label: 'CEP',
+                    isRequired: true,
+                    hint: '00000-000',
+                    prefixIcon: Icons.location_on_outlined,
+                    controller: _cepController,
+                    errorText: _errors[RegisterField.cep],
+                    keyboardType: TextInputType.number,
+                    inputFormatters: const [
+                      MaskedInputFormatter(InputMasks.cep),
+                    ],
+                    autofillHints: const [AutofillHints.postalCode],
+                    onChanged: (_) {
+                      _clearError(RegisterField.cep);
+                      // Reavalia se o botão Buscar pode ser habilitado.
+                      setState(() {});
+                    },
+                    trailing: FieldActionButton(
+                      label: 'Buscar',
+                      enabled: _canSearchCep,
+                      isLoading: _isSearchingCep,
+                      onPressed: _searchCep,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  LabeledTextField(
+                    label: 'Logradouro',
+                    isRequired: true,
+                    prefixIcon: Icons.home_outlined,
+                    controller: _streetController,
+                    errorText: _errors[RegisterField.street],
+                    textCapitalization: TextCapitalization.words,
+                    onChanged: (_) => _clearError(RegisterField.street),
+                  ),
+                  const SizedBox(height: 14),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: LabeledTextField(
+                          label: 'Número',
+                          isRequired: true,
+                          controller: _numberController,
+                          errorText: _errors[RegisterField.number],
+                          keyboardType: TextInputType.text,
+                          onChanged: (_) => _clearError(RegisterField.number),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: LabeledTextField(
+                          label: 'Complemento',
+                          controller: _complementController,
+                          textCapitalization: TextCapitalization.words,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  LabeledTextField(
+                    label: 'Bairro',
+                    isRequired: true,
+                    controller: _neighborhoodController,
+                    errorText: _errors[RegisterField.neighborhood],
+                    textCapitalization: TextCapitalization.words,
+                    onChanged: (_) => _clearError(RegisterField.neighborhood),
+                  ),
+                  const SizedBox(height: 14),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: LabeledDropdown<String>(
+                          label: 'UF',
+                          isRequired: true,
+                          hint: 'Selecione a UF',
+                          value: _selectedStateCode,
+                          errorText: _errors[RegisterField.state],
+                          items: brazilianStates
+                              .map(
+                                (state) => DropdownMenuItem(
+                                  value: state.code,
+                                  child: Text('${state.code} - ${state.name}'),
+                                ),
+                              )
+                              .toList(),
+                          // Com o menu fechado mostra só a sigla: o nome
+                          // completo estoura a meia largura com fonte grande.
+                          selectedItemBuilder: (_) => brazilianStates
+                              .map(
+                                (state) => Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(state.code),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: _isSubmitting ? null : _onStateChanged,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: LabeledDropdown<String>(
+                          label: 'Cidade',
+                          isRequired: true,
+                          hint: _selectedStateCode == null
+                              ? 'Selecione a UF primeiro'
+                              : 'Selecione a cidade',
+                          value: _selectedCity,
+                          errorText: _errors[RegisterField.city],
+                          isLoading: _loadingCities,
+                          items: _cities
+                              .map(
+                                (city) => DropdownMenuItem(
+                                  value: city,
+                                  child: Text(
+                                    city,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged:
+                              _selectedStateCode == null || _isSubmitting
+                              ? null
+                              : (city) => setState(() {
+                                  _selectedCity = city;
+                                  _errors[RegisterField.city] = null;
+                                }),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  TermsCheckbox(
+                    value: _acceptedTerms,
+                    errorText: _errors[RegisterField.terms],
+                    onChanged: (value) => setState(() {
+                      _acceptedTerms = value;
+                      _errors[RegisterField.terms] = null;
+                    }),
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (_submitError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        _submitError!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: colors.statusError),
+                      ),
+                    ),
+
+                  ElevatedButton.icon(
+                    onPressed: _isSubmitting ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.primary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          colors.primary.withValues(alpha: 0.5),
+                      disabledForegroundColor:
+                          Colors.white.withValues(alpha: 0.7),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 4,
+                      shadowColor: colors.primary.withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.person_add_alt_1, size: 20),
+                    label: Text(_isSubmitting ? 'Criando...' : 'Criar conta'),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Já tenho conta — ',
+                        style: TextStyle(color: colors.textMuted, fontSize: 13),
+                      ),
+                      GestureDetector(
+                        onTap: _isSubmitting ? null : _goToLogin,
+                        child: Text(
+                          'entrar',
+                          style: TextStyle(
+                            color: colors.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
