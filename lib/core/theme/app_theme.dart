@@ -7,6 +7,11 @@ class AppColors {
   final Color background;
   final Color protocolBg;
 
+  /// Gradiente de fundo das telas de autenticação. Mora na paleta, e não em
+  /// [AppGradients], pelo mesmo motivo de [cardShadow]: varia por tema, e uma
+  /// constante solta não tem como saber qual tema está ativo.
+  final Gradient backgroundGradient;
+
   // Superfícies
   final Color surface;
   final Color cardBackground;
@@ -48,6 +53,7 @@ class AppColors {
   const AppColors._({
     required this.background,
     required this.protocolBg,
+    required this.backgroundGradient,
     required this.surface,
     required this.cardBackground,
     required this.cardBorder,
@@ -77,6 +83,17 @@ class AppColors {
   static const light = AppColors._(
     background: Color(0xFFF5F7FA),
     protocolBg: Color(0xFFF5F7FA),
+    backgroundGradient: LinearGradient(
+      begin: Alignment(-0.6, -1),
+      end: Alignment(0.6, 1),
+      colors: [
+        Color(0xFFF0F6FF),
+        Color(0xFFFFFFFF),
+        Color(0xFFF4F9FF),
+        Color(0xFFEAF2FF),
+      ],
+      stops: [0.0, 0.4, 0.7, 1.0],
+    ),
     surface: Color(0xFFFFFFFF),
     cardBackground: Color(0xFFEAF2FF),
     cardBorder: Color(0x143F7DFF),
@@ -111,6 +128,14 @@ class AppColors {
   static const dark = AppColors._(
     background: Color(0xFF080E1C),
     protocolBg: Color(0xFF0B1525),
+    backgroundGradient: LinearGradient(
+      begin: Alignment(-0.6, -1),
+      end: Alignment(0.6, 1),
+      // Mais escuro embaixo de propósito: o card (surface 0xFF131E33) e a
+      // cardBorder (azul a 14% de alpha) precisam continuar visíveis no rodapé.
+      colors: [Color(0xFF080E1C), Color(0xFF0B1525), Color(0xFF060B16)],
+      stops: [0.0, 0.45, 1.0],
+    ),
     surface: Color(0xFF131E33),
     cardBackground: Color(0xFF0F1A2E),
     cardBorder: Color(0x243F7DFF),
@@ -126,7 +151,9 @@ class AppColors {
     textMuted: Color(0xFF3D5578),
     textTime: Color(0xFF2D4060),
     inputFill: Color(0xFF0F1A2E),
-    inputBorder: Color(0xFF0F1A2E),
+    // Igual ao inputFill, o campo ficava sem borda nenhuma e só aparecia por
+    // ser mais claro que o fundo. Sobre o gradiente escuro ele sumiria.
+    inputBorder: Color(0x403F7DFF),
     iconBorder: Color(0x403F7DFF),
     navBg: Color(0xF7080E1C),
     navBorder: Color(0x1F3F7DFF),
@@ -148,6 +175,10 @@ class AppColors {
   static const highContrastLight = AppColors._(
     background: Color(0xFFFFFFFF),
     protocolBg: Color(0xFFFFFFFF),
+    // Alto contraste não leva gradiente de verdade: decoração de baixo
+    // contraste é exatamente o que esta paleta existe para eliminar. Chapado,
+    // acompanhando background. LinearGradient exige colors.length >= 2.
+    backgroundGradient: LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)]),
     surface: Color(0xFFFFFFFF),
     cardBackground: Color(0xFFFFFFFF),
     cardBorder: Color(0xFF000000),
@@ -181,6 +212,8 @@ class AppColors {
   static const highContrastDark = AppColors._(
     background: Color(0xFF000000),
     protocolBg: Color(0xFF000000),
+    // Chapado, acompanhando background. Ver comentário em highContrastLight.
+    backgroundGradient: LinearGradient(colors: [Color(0xFF000000), Color(0xFF000000)]),
     surface: Color(0xFF000000),
     cardBackground: Color(0xFF000000),
     cardBorder: Color(0xFFFFFFFF),
@@ -221,21 +254,6 @@ class AppColors {
 }
 
 class AppGradients {
-  // Fundos de página
-  static const background = LinearGradient(
-    begin: Alignment(-0.6, -1),
-    end: Alignment(0.6, 1),
-    colors: [Color(0xFFF0F6FF), Color(0xFFFFFFFF), Color(0xFFF4F9FF), Color(0xFFEAF2FF)],
-    stops: [0.0, 0.4, 0.7, 1.0],
-  );
-
-  static const backgroundDash = LinearGradient(
-    begin: Alignment(-0.6, -1),
-    end: Alignment(0.6, 1),
-    colors: [Color(0xFFF0F6FF), Color(0xFFFFFFFF), Color(0xFFF8FAFF)],
-    stops: [0.0, 0.3, 1.0],
-  );
-
   // Botão primário
   static const primaryButton = LinearGradient(
     begin: Alignment.topLeft,

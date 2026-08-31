@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_preferences_controller.dart';
 import 'core/theme/app_preferences_scope.dart';
 import 'core/theme/app_theme.dart';
+import 'features/forgot_password/screens/forgot_password_screen.dart';
 import 'features/login/screens/login_screen.dart';
 import 'features/register/screens/register_screen.dart';
 
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
+        '/forgot-password': (_) => const ForgotPasswordScreen(),
       },
     );
   }

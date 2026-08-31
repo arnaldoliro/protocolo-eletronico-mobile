@@ -25,6 +25,11 @@ class LabeledTextField extends StatefulWidget {
   final TextCapitalization textCapitalization;
   final ValueChanged<String>? onChanged;
 
+  /// Submete pelo botão de ação do teclado. `textInputAction` sozinho apenas
+  /// fecha o teclado — em formulário de um campo só, é este callback que faz
+  /// o Enter valer alguma coisa.
+  final ValueChanged<String>? onSubmitted;
+
   /// Widget colocado à direita do input (ex.: o botão "Buscar" do CEP).
   /// Fica dentro deste widget, e não como irmão externo, para o alinhamento
   /// vertical acompanhar o rótulo em qualquer escala de fonte.
@@ -51,6 +56,7 @@ class LabeledTextField extends StatefulWidget {
     this.textInputAction = TextInputAction.next,
     this.textCapitalization = TextCapitalization.none,
     this.onChanged,
+    this.onSubmitted,
     this.trailing,
     this.suggestionsEnabled = true,
     this.autofillHints,
@@ -79,6 +85,7 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
         textInputAction: widget.textInputAction,
         textCapitalization: widget.textCapitalization,
         onChanged: widget.onChanged,
+        onSubmitted: widget.onSubmitted,
         autocorrect: widget.suggestionsEnabled,
         enableSuggestions: widget.suggestionsEnabled,
         autofillHints: widget.autofillHints,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/mock/auth_mock_service.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/auth_background.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../home/screens/home_shell.dart';
 
@@ -82,14 +83,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
 
-    return Scaffold(
-      body: Center(
+    return AuthBackground(
+      child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 48),
               CustomTextField(
                 label: 'E-mail',
                 keyboardType: TextInputType.emailAddress,
@@ -141,7 +141,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () {},
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/forgot-password'),
                 child: Text(
                   'Esqueceu a senha?',
                   style: TextStyle(color: colors.textMuted),
