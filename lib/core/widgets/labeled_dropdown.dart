@@ -20,6 +20,9 @@ class LabeledDropdown<T> extends StatelessWidget {
   /// texto da lista é longo demais para a largura do campo.
   final List<Widget> Function(BuildContext)? selectedItemBuilder;
 
+  /// Explicação do campo, exibida ao tocar no rótulo.
+  final String? helpMessage;
+
   const LabeledDropdown({
     super.key,
     required this.label,
@@ -32,6 +35,7 @@ class LabeledDropdown<T> extends StatelessWidget {
     this.errorText,
     this.prefixIcon,
     this.selectedItemBuilder,
+    this.helpMessage,
   });
 
   @override
@@ -42,7 +46,11 @@ class LabeledDropdown<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FieldLabel(label: label, isRequired: isRequired),
+        FieldLabel(
+          label: label,
+          isRequired: isRequired,
+          helpMessage: helpMessage,
+        ),
         const SizedBox(height: 6),
         Semantics(
           label: label,
@@ -51,6 +59,10 @@ class LabeledDropdown<T> extends StatelessWidget {
             // Sem isto, nomes longos ("São José do Rio Preto") estouram o
             // dropdown de meia largura.
             isExpanded: true,
+            // O default é 48dp FIXO, e cada item vai num SizedBox dessa
+            // altura: um nome que quebre em duas linhas com a fonte grande
+            // estoura. Nulo faz o item se dimensionar pelo conteúdo.
+            itemHeight: null,
             items: items,
             onChanged: enabled ? onChanged : null,
             selectedItemBuilder: selectedItemBuilder,

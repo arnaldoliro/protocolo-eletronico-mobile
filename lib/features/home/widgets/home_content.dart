@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/process_model.dart';
 import '../../../core/models/user_model.dart';
-import '../screens/new_process_screen.dart';
+import '../../new_process/screens/new_process_screen.dart';
 import 'accessibility_bar.dart';
 import 'home_header.dart';
 import 'new_process_cta_card.dart';
@@ -45,6 +45,8 @@ class HomeContent extends StatelessWidget {
           const StatsRow(inProgress: 1, completed: 0, warnings: 0),
           const SizedBox(height: 20),
 
+          // TODO(protocolo): ver o TODO em HomeShell._openNewProcess — este
+          // push também precisará consumir o protocolo criado.
           NewProcessCtaCard(
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const NewProcessScreen()),

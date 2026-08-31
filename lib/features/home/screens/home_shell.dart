@@ -5,13 +5,13 @@ import '../../../core/models/user_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/logout_action.dart';
 import '../../account/screens/account_screen.dart';
+import '../../new_process/screens/new_process_screen.dart';
 import '../models/home_panel.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/home_content.dart';
 import '../widgets/menu_panel.dart';
 import '../widgets/notices_panel.dart';
 import 'accessibility_screen.dart';
-import 'new_process_screen.dart';
 import 'support_screen.dart';
 
 /// Casca da Home: mantém o conteúdo principal sempre montado e revela
@@ -220,6 +220,10 @@ class _HomeShellState extends State<HomeShell>
   /// navegando por conta própria — 3 pontos de entrada não justificam
   /// levantar isto para um callback atravessando o HomeContent.
   Future<void> _openNewProcess() async {
+    // TODO(protocolo): quando o passo 3 do assistente existir, esta rota vai
+    // devolver o protocolo criado — consumir o retorno aqui e no CTA da Home.
+    // Depende de HomeContent deixar de ser StatelessWidget com a lista
+    // static final, e de StatsRow parar de ser hardcoded.
     _animateTo(0.0);
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const NewProcessScreen()),
