@@ -12,12 +12,12 @@ import '../../../core/widgets/auth_background.dart';
 import '../../../core/widgets/auth_card_header.dart';
 import '../../../core/utils/masked_input_formatter.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/widgets/field_action_button.dart';
 import '../../../core/widgets/labeled_dropdown.dart';
 import '../../../core/widgets/labeled_text_field.dart';
+import '../../../core/widgets/section_header.dart';
 import '../../home/screens/home_shell.dart';
-import '../widgets/field_action_button.dart';
 import '../widgets/registration_type_toggle.dart';
-import '../widgets/section_header.dart';
 import '../widgets/terms_checkbox.dart';
 
 enum RegisterField {

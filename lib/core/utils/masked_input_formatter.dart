@@ -12,6 +12,38 @@ class InputMasks {
   static const cep = '#####-###';
 }
 
+/// Aplica [mask] a uma string que já contém só dígitos, para EXIBIR um valor
+/// vindo do backend.
+///
+/// Existe porque `inputFormatters` não roda quando se atribui
+/// `controller.text` — eles só interceptam digitação. Não usa
+/// [MaskedInputFormatter.formatEditUpdate] de propósito: aquele carrega o
+/// cálculo de cursor, que é a parte sutil deste arquivo e não deve ser
+/// exercitada por um caminho que não tem cursor nenhum.
+///
+/// Devolve [digits] intacto quando a contagem não bate com a capacidade da
+/// máscara. Sem isso, um telefone fixo (10 dígitos) ou com DDI (13) seria
+/// truncado silenciosamente e o usuário salvaria o lixo de volta.
+///
+/// Mantenha em sincronia com [MaskedInputFormatter.formatEditUpdate]: as duas
+/// precisam produzir o mesmo resultado para a mesma entrada.
+String formatWithMask(String mask, String digits) {
+  final capacity = '#'.allMatches(mask).length;
+  if (digits.length != capacity) return digits;
+
+  final buffer = StringBuffer();
+  var index = 0;
+  for (final char in mask.split('')) {
+    if (char == '#') {
+      buffer.write(digits[index]);
+      index++;
+    } else {
+      buffer.write(char);
+    }
+  }
+  return buffer.toString();
+}
+
 /// Remove tudo que não for dígito. Use antes de enviar o valor ao backend —
 /// ele não deve precisar desparsear "(11) 98888-7777".
 String onlyDigits(String value) => value.replaceAll(RegExp(r'\D'), '');

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import '../theme/app_theme.dart';
 
 /// Botão de ação ao lado de um campo — "Buscar" no CEP, "Consultar" no CNPJ.
 ///
