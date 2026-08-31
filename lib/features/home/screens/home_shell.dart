@@ -8,8 +8,10 @@ import '../widgets/bottom_nav_bar.dart';
 import '../widgets/home_content.dart';
 import '../widgets/menu_panel.dart';
 import '../widgets/notices_panel.dart';
+import 'accessibility_screen.dart';
 import 'account_screen.dart';
 import 'new_process_screen.dart';
+import 'support_screen.dart';
 
 /// Casca da Home: mantém o conteúdo principal sempre montado e revela
 /// painéis laterais deslizando-o horizontalmente, sem abrir novas rotas.
@@ -32,6 +34,11 @@ class _HomeShellState extends State<HomeShell>
     with SingleTickerProviderStateMixin {
   static const _fullTravel = Duration(milliseconds: 280);
   static const _minDuration = Duration(milliseconds: 120);
+  // Teto maior que _fullTravel só para a travessia de painel a painel
+  // (distância 2.0). Nenhum gesto alcança distância > 1.0 — _onDragEnd sempre
+  // mira a parada mais próxima na direção do dedo —, então isto não altera o
+  // comportamento de arrasto nenhum.
+  static const _maxDuration = Duration(milliseconds: 420);
   static const _minFlingVelocity = 400.0; // px/s
   static const _panelFraction = 0.80;
   static const _maxPanelWidth = 340.0;
@@ -54,6 +61,11 @@ class _HomeShellState extends State<HomeShell>
   double _panelWidth = 0;
   bool _panelOpen = false;
 
+  /// Verdadeiro durante uma travessia direta de um painel ao outro. Sem isto o
+  /// FAB e o scrim, cuja opacidade depende de `1 - |t|`, atravessam o zero e
+  /// piscam por inteiro no meio do caminho.
+  bool _crossing = false;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -65,6 +77,9 @@ class _HomeShellState extends State<HomeShell>
   /// `canPop` é lido no build, então precisa de setState — mas só quando
   /// cruza o zero, nunca a cada frame da animação.
   void _syncPanelOpenFlag() {
+    // whenComplete dispara também quando a animação é cancelada — inclusive
+    // pelo dispose do controller.
+    if (!mounted) return;
     final open = _controller.value.abs() > 0.001;
     if (open != _panelOpen) setState(() => _panelOpen = open);
   }
@@ -91,9 +106,13 @@ class _HomeShellState extends State<HomeShell>
     final ms = (_fullTravel.inMilliseconds * distance)
         .clamp(
           _minDuration.inMilliseconds.toDouble(),
-          _fullTravel.inMilliseconds.toDouble(),
+          _maxDuration.inMilliseconds.toDouble(),
         )
         .round();
+
+    // Distância > 1 só acontece indo de um painel direto ao outro.
+    final crossing = distance > 1.0;
+    if (crossing) setState(() => _crossing = true);
 
     _controller
         .animateTo(
@@ -101,7 +120,10 @@ class _HomeShellState extends State<HomeShell>
           duration: Duration(milliseconds: ms),
           curve: Curves.easeOutCubic,
         )
-        .whenComplete(_syncPanelOpenFlag);
+        .whenComplete(() {
+          if (crossing && mounted) setState(() => _crossing = false);
+          _syncPanelOpenFlag();
+        });
     _syncPanelOpenFlag();
   }
 
@@ -156,6 +178,30 @@ class _HomeShellState extends State<HomeShell>
     _animateTo(0.0);
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const AccountScreen()),
+    );
+  }
+
+  Future<void> _openAccessibility() async {
+    _animateTo(0.0);
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AccessibilityScreen()),
+    );
+  }
+
+  Future<void> _openSupport() async {
+    _animateTo(0.0);
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SupportScreen()),
+    );
+  }
+
+  /// Compartilhado entre o FAB e o item do menu. O card da Home continua
+  /// navegando por conta própria — 3 pontos de entrada não justificam
+  /// levantar isto para um callback atravessando o HomeContent.
+  Future<void> _openNewProcess() async {
+    _animateTo(0.0);
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NewProcessScreen()),
     );
   }
 
@@ -230,6 +276,12 @@ class _HomeShellState extends State<HomeShell>
                     child: MenuPanel(
                       user: widget.user,
                       onAccountTap: _openAccount,
+                      onAccessibilityTap: _openAccessibility,
+                      onNewProcessTap: _openNewProcess,
+                      onSupportTap: _openSupport,
+                      // Reusa o painel que já existe, em vez de duplicar a
+                      // lista de avisos numa rota nova.
+                      onNoticesTap: () => _onNavSelect(HomePanel.notices),
                       onLogoutTap: _logout,
                     ),
                   ),
@@ -275,7 +327,8 @@ class _HomeShellState extends State<HomeShell>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final t = _controller.value.abs();
+        // Na travessia o scrim fica no máximo em vez de sumir e voltar.
+        final t = _crossing ? 1.0 : _controller.value.abs();
         if (t == 0) return const SizedBox.shrink();
 
         return Positioned.fill(
@@ -329,9 +382,7 @@ class _HomeShellState extends State<HomeShell>
     return AnimatedBuilder(
       animation: _controller,
       child: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const NewProcessScreen()),
-        ),
+        onPressed: _openNewProcess,
         backgroundColor: colors.primary,
         foregroundColor: Colors.white,
         elevation: 6,
@@ -339,7 +390,9 @@ class _HomeShellState extends State<HomeShell>
         child: const Icon(Icons.add, size: 28),
       ),
       builder: (context, child) {
-        final v = (1.0 - _controller.value.abs()).clamp(0.0, 1.0);
+        final v = _crossing
+            ? 0.0
+            : (1.0 - _controller.value.abs()).clamp(0.0, 1.0);
         if (v == 0) return const SizedBox.shrink();
 
         // IgnorePointer é obrigatório: Opacity(0) continua recebendo toques.

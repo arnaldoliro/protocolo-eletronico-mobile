@@ -24,6 +24,7 @@ class AccessibilityBar extends StatelessWidget {
       children: [
         _IconButton(
           icon: Icons.auto_awesome_outlined,
+          semanticsLabel: 'Assistente. Em breve.',
           colors: colors,
           onTap: () => _showComingSoon(context),
         ),
@@ -32,13 +33,17 @@ class AccessibilityBar extends StatelessWidget {
         const Spacer(),
         _IconButton(
           icon: isDark ? Icons.dark_mode : Icons.light_mode,
+          semanticsLabel: 'Tema escuro',
           colors: colors,
-          highlighted: true,
+          // Estava fixo em true: o botão aparecia sempre aceso, sem nunca
+          // refletir o tema em uso.
+          highlighted: isDark,
           onTap: preferences.toggleTheme,
         ),
         const SizedBox(width: 8),
         _IconButton(
           icon: Icons.contrast,
+          semanticsLabel: 'Alto contraste',
           colors: colors,
           highlighted: preferences.highContrast,
           onTap: preferences.toggleHighContrast,
@@ -68,6 +73,7 @@ class _FontScaleGroup extends StatelessWidget {
         children: [
           _FontScaleButton(
             label: 'A-',
+            semanticsLabel: 'Diminuir tamanho da fonte',
             colors: colors,
             onTap: preferences.fontScale > AppPreferencesController.minFontScale
                 ? preferences.decreaseFontScale
@@ -75,6 +81,7 @@ class _FontScaleGroup extends StatelessWidget {
           ),
           _FontScaleButton(
             label: 'A',
+            semanticsLabel: 'Restaurar tamanho padrão da fonte',
             colors: colors,
             onTap: preferences.fontScale != AppPreferencesController.defaultFontScale
                 ? preferences.resetFontScale
@@ -82,6 +89,7 @@ class _FontScaleGroup extends StatelessWidget {
           ),
           _FontScaleButton(
             label: 'A+',
+            semanticsLabel: 'Aumentar tamanho da fonte',
             colors: colors,
             onTap: preferences.fontScale < AppPreferencesController.maxFontScale
                 ? preferences.increaseFontScale
@@ -95,26 +103,40 @@ class _FontScaleGroup extends StatelessWidget {
 
 class _FontScaleButton extends StatelessWidget {
   final String label;
+  final String semanticsLabel;
   final AppColors colors;
   final VoidCallback? onTap;
 
-  const _FontScaleButton({required this.label, required this.colors, this.onTap});
+  const _FontScaleButton({
+    required this.label,
+    required this.semanticsLabel,
+    required this.colors,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
 
-    return InkWell(
+    // "A-", "A" e "A+" são lidos como letras soltas pelo leitor de tela.
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: semanticsLabel,
+      child: ExcludeSemantics(
+        child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: enabled ? colors.inputText : colors.textMuted,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: enabled ? colors.inputText : colors.textMuted,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ),
       ),
@@ -128,16 +150,25 @@ class _IconButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool highlighted;
 
+  /// Sem isto o leitor de tela anuncia só "botão": o conteúdo é um ícone,
+  /// que não carrega texto nenhum.
+  final String semanticsLabel;
+
   const _IconButton({
     required this.icon,
     required this.colors,
     required this.onTap,
+    required this.semanticsLabel,
     this.highlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return Semantics(
+      button: true,
+      toggled: highlighted,
+      label: semanticsLabel,
+      child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -148,10 +179,11 @@ class _IconButton extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: colors.cardShadow,
         ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: highlighted ? Colors.white : colors.inputText,
+          child: Icon(
+            icon,
+            size: 18,
+            color: highlighted ? Colors.white : colors.inputText,
+          ),
         ),
       ),
     );

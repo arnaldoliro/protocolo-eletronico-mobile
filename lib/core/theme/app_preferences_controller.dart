@@ -78,7 +78,12 @@ class AppPreferencesController extends ChangeNotifier {
   void resetFontScale() => _setFontScale(defaultFontScale);
 
   void _setFontScale(double value) {
-    final clamped = value.clamp(minFontScale, maxFontScale);
+    // Arredondar para 2 casas antes de comparar: o passo 0.15 em IEEE-754 faz
+    // 1.15 + 0.15 == 1.2999999999999998, que passa pelo clamp intacto e não é
+    // igual a maxFontScale. Sem isto, subir de 0.85 até o teto exige 4 toques
+    // em vez de 3, e o penúltimo já exibe "130%" com o botão ainda habilitado.
+    final clamped =
+        (value.clamp(minFontScale, maxFontScale) * 100).roundToDouble() / 100;
     if (clamped == _fontScale) return;
     _fontScale = clamped;
     unawaited(_prefs.setDouble(_keyFontScale, _fontScale));
