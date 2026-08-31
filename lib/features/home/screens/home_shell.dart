@@ -3,13 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/logout_action.dart';
+import '../../account/screens/account_screen.dart';
 import '../models/home_panel.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/home_content.dart';
 import '../widgets/menu_panel.dart';
 import '../widgets/notices_panel.dart';
 import 'accessibility_screen.dart';
-import 'account_screen.dart';
 import 'new_process_screen.dart';
 import 'support_screen.dart';
 
@@ -54,9 +55,15 @@ class _HomeShellState extends State<HomeShell>
     duration: _fullTravel,
   );
 
-  /// Construído uma única vez: é o que garante que o conteúdo permaneça
-  /// montado (scroll preservado) durante todo o deslizamento.
-  late final Widget _content = HomeContent(user: widget.user);
+  /// O usuário pode ser editado na tela de conta, então não dá para ler
+  /// `widget.user` direto.
+  late UserModel _user = widget.user;
+
+  /// Instância memoizada para a subárvore não reconstruir a cada setState do
+  /// shell. Trocada deliberadamente quando o usuário muda — reconstruir
+  /// HomeContent NÃO perde o scroll: quem preserva o ScrollPosition é o
+  /// Element do Scrollable permanecer na mesma posição da árvore.
+  late Widget _content = HomeContent(user: _user);
 
   double _panelWidth = 0;
   bool _panelOpen = false;
@@ -177,8 +184,22 @@ class _HomeShellState extends State<HomeShell>
     // painel aberto numa tela que já não estava olhando.
     _animateTo(0.0);
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AccountScreen()),
+      MaterialPageRoute(
+        builder: (_) => AccountScreen(
+          user: _user,
+          onUserUpdated: _onUserUpdated,
+        ),
+      ),
     );
+  }
+
+  void _onUserUpdated(UserModel user) {
+    setState(() {
+      _user = user;
+      // Nova instância: a subárvore reconstrói com o nome novo e o scroll
+      // permanece, porque o Element do Scrollable não sai do lugar.
+      _content = HomeContent(user: _user);
+    });
   }
 
   Future<void> _openAccessibility() async {
@@ -205,34 +226,9 @@ class _HomeShellState extends State<HomeShell>
     );
   }
 
-  Future<void> _logout() async {
-    final colors = AppColors.of(context);
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Sair da conta'),
-        content: const Text('Deseja realmente sair?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('Sair', style: TextStyle(color: colors.statusError)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    // TODO(auth): quando existir sessão/token, invalidar no backend e
-    // limpar o storage local ANTES de navegar. Hoje AuthService só expõe
-    // login(), então isto é apenas navegação — não é logout de verdade.
-    Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
-  }
+  /// Delegado a confirmAndLogout: a tela de conta tem o mesmo botão, e o
+  /// TODO(auth) sobre invalidar sessão precisa viver num lugar só.
+  Future<void> _logout() => confirmAndLogout(context);
 
   // ---------------------------------------------------------------- build
 
@@ -274,7 +270,7 @@ class _HomeShellState extends State<HomeShell>
                   _buildPanel(
                     isLeft: true,
                     child: MenuPanel(
-                      user: widget.user,
+                      user: _user,
                       onAccountTap: _openAccount,
                       onAccessibilityTap: _openAccessibility,
                       onNewProcessTap: _openNewProcess,

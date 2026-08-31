@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import '../theme/app_theme.dart';
 
 /// Separador de seção dentro do formulário (ex.: "Endereço").
 class SectionHeader extends StatelessWidget {
