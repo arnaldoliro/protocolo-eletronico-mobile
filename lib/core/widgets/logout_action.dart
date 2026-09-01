@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/mock/mock_process_store.dart';
 import 'confirm_dialog.dart';
 
 /// Confirma e encerra a sessão.
@@ -17,6 +18,10 @@ Future<void> confirmAndLogout(BuildContext context) async {
   );
 
   if (!confirmed || !context.mounted) return;
+
+  // TODO: remover junto com os mocks. O store é compartilhado e em memória:
+  // sem o reset, o próximo usuário a entrar veria os protocolos deste.
+  MockProcessStore.instance.reset();
 
   // TODO(auth): quando existir sessão/token, invalidar no backend e limpar o
   // storage local ANTES de navegar. Hoje AuthService só expõe login(), então
