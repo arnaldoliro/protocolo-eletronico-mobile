@@ -1,17 +1,18 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../../core/models/process_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/logout_action.dart';
 import '../../account/screens/account_screen.dart';
+import '../../new_process/screens/new_process_screen.dart';
 import '../models/home_panel.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/home_content.dart';
 import '../widgets/menu_panel.dart';
 import '../widgets/notices_panel.dart';
 import 'accessibility_screen.dart';
-import 'new_process_screen.dart';
 import 'support_screen.dart';
 
 /// Casca da Home: mantém o conteúdo principal sempre montado e revela
@@ -59,11 +60,36 @@ class _HomeShellState extends State<HomeShell>
   /// `widget.user` direto.
   late UserModel _user = widget.user;
 
+  /// Protocolos em andamento. Estava como `static final` dentro do
+  /// HomeContent — estado estático sobrevive ao logout e, quando o login for
+  /// de verdade, mostraria os dados do usuário anterior para o próximo.
+  // TODO: dado mockado — substituir pela listagem real do backend.
+  late List<ProcessModel> _processes = [
+    ProcessModel(
+      id: '001',
+      type: 'Declaração de Tempo de Serviço',
+      status: ProcessStatus.emTramitacao,
+      date: DateTime.now().subtract(const Duration(days: 2)),
+      protocolNumber: '000123/2026',
+      requesterMaskedCpf: '123.***.***-00',
+    ),
+  ];
+
   /// Instância memoizada para a subárvore não reconstruir a cada setState do
-  /// shell. Trocada deliberadamente quando o usuário muda — reconstruir
-  /// HomeContent NÃO perde o scroll: quem preserva o ScrollPosition é o
-  /// Element do Scrollable permanecer na mesma posição da árvore.
-  late Widget _content = HomeContent(user: _user);
+  /// shell. Trocada deliberadamente quando o usuário ou a lista mudam —
+  /// reconstruir HomeContent NÃO perde o scroll: quem preserva o
+  /// ScrollPosition é o Element do Scrollable permanecer na mesma posição da
+  /// árvore.
+  late Widget _content = _buildHomeContent();
+
+  /// Um ponto só de construção. Com dois call sites montando o widget na mão,
+  /// esquecer um parâmetro daria bug silencioso: a subárvore memoizada
+  /// seguiria com a lista velha sem nada avisar.
+  Widget _buildHomeContent() => HomeContent(
+    user: _user,
+    processes: _processes,
+    onNewProcessTap: _openNewProcess,
+  );
 
   double _panelWidth = 0;
   bool _panelOpen = false;
@@ -198,7 +224,14 @@ class _HomeShellState extends State<HomeShell>
       _user = user;
       // Nova instância: a subárvore reconstrói com o nome novo e o scroll
       // permanece, porque o Element do Scrollable não sai do lugar.
-      _content = HomeContent(user: _user);
+      _content = _buildHomeContent();
+    });
+  }
+
+  void _onProcessCreated(ProcessModel process) {
+    setState(() {
+      _processes = [process, ..._processes];
+      _content = _buildHomeContent();
     });
   }
 
@@ -216,14 +249,14 @@ class _HomeShellState extends State<HomeShell>
     );
   }
 
-  /// Compartilhado entre o FAB e o item do menu. O card da Home continua
-  /// navegando por conta própria — 3 pontos de entrada não justificam
-  /// levantar isto para um callback atravessando o HomeContent.
+  /// Único caminho para o assistente — FAB, item do menu e card da Home. É
+  /// aqui que o protocolo recém-criado entra na lista.
   Future<void> _openNewProcess() async {
     _animateTo(0.0);
-    await Navigator.of(context).push(
+    final created = await Navigator.of(context).push<ProcessModel>(
       MaterialPageRoute(builder: (_) => const NewProcessScreen()),
     );
+    if (created != null && mounted) _onProcessCreated(created);
   }
 
   /// Delegado a confirmAndLogout: a tela de conta tem o mesmo botão, e o

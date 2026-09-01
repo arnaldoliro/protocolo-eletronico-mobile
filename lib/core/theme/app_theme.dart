@@ -253,6 +253,18 @@ class AppColors {
   }
 }
 
+/// Cor de texto/ícone legível sobre [background].
+///
+/// Branco fixo sobre uma cor de marca não funciona nas quatro paletas: em
+/// alto contraste escuro o `primary` é `#6FA8FF` (branco sobre ele dá 2,4:1) e
+/// o `statusSuccess` é `#34D399` (1,9:1) — os dois reprovam. Preto resolve
+/// ambos, e a derivação acerta as quatro paletas sem caso especial.
+Color onBrandColor(Color background) {
+  return ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+      ? Colors.white
+      : Colors.black;
+}
+
 class AppGradients {
   // Botão primário
   static const primaryButton = LinearGradient(

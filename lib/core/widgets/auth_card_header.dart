@@ -24,13 +24,7 @@ class AuthCardHeader extends StatelessWidget {
     final colors = AppColors.of(context);
     final background = iconBackground ?? colors.primary;
 
-    // O ícone era Colors.white fixo. Em alto contraste escuro o primary é
-    // claro (0xFF6FA8FF) e branco sobre ele reprova o AA do WCAG — pior ainda
-    // sobre statusSuccess. Derivar do fundo resolve para qualquer paleta.
-    final foreground =
-        ThemeData.estimateBrightnessForColor(background) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
+    final foreground = onBrandColor(background);
 
     return Column(
       children: [
