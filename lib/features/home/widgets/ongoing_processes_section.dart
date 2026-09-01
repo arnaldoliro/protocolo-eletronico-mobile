@@ -9,10 +9,15 @@ class OngoingProcessesSection extends StatelessWidget {
   final List<ProcessModel> processes;
   final ValueChanged<ProcessModel>? onTapProcess;
 
+  /// Sem isto, o estado vazio aparece durante a carga e mente: o usuário lê
+  /// "nenhum protocolo" um instante antes de a lista chegar.
+  final bool isLoading;
+
   const OngoingProcessesSection({
     super.key,
     required this.processes,
     this.onTapProcess,
+    this.isLoading = false,
   });
 
   @override
@@ -32,7 +37,14 @@ class OngoingProcessesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        if (processes.isEmpty)
+        if (isLoading && processes.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: CircularProgressIndicator(color: colors.primary),
+            ),
+          )
+        else if (processes.isEmpty)
           // Sem isto sobra só o título solto quando a lista está vazia — o que
           // passou a ser alcançável agora que ela é estado dinâmico.
           Container(

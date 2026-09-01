@@ -9,6 +9,7 @@ class MenuPanel extends StatelessWidget {
   final VoidCallback onAccountTap;
   final VoidCallback onAccessibilityTap;
   final VoidCallback onNewProcessTap;
+  final VoidCallback onTrackProcessesTap;
   final VoidCallback onSupportTap;
   final VoidCallback onNoticesTap;
   final VoidCallback onLogoutTap;
@@ -19,6 +20,7 @@ class MenuPanel extends StatelessWidget {
     required this.onAccountTap,
     required this.onAccessibilityTap,
     required this.onNewProcessTap,
+    required this.onTrackProcessesTap,
     required this.onSupportTap,
     required this.onNoticesTap,
     required this.onLogoutTap,
@@ -114,6 +116,12 @@ class MenuPanel extends StatelessWidget {
                     label: 'Novo protocolo',
                     colors: colors,
                     onTap: onNewProcessTap,
+                  ),
+                  _MenuTile(
+                    icon: Icons.fact_check_outlined,
+                    label: 'Meus protocolos',
+                    colors: colors,
+                    onTap: onTrackProcessesTap,
                   ),
                   _MenuTile(
                     icon: Icons.support_agent_outlined,

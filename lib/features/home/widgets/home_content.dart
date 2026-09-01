@@ -5,6 +5,7 @@ import 'accessibility_bar.dart';
 import 'home_header.dart';
 import 'new_process_cta_card.dart';
 import 'ongoing_processes_section.dart';
+import 'track_processes_cta_card.dart';
 import 'summary_section.dart';
 
 /// Conteúdo central da Home — o que desliza horizontalmente quando um
@@ -21,11 +22,18 @@ class HomeContent extends StatelessWidget {
   /// um resultado, quem precisa consumi-lo é quem tem o estado da lista.
   final VoidCallback onNewProcessTap;
 
+  /// Abre a listagem completa, com busca e filtros.
+  final VoidCallback onTrackProcessesTap;
+
+  final bool isLoadingProcesses;
+
   const HomeContent({
     super.key,
     required this.user,
     required this.processes,
     required this.onNewProcessTap,
+    required this.onTrackProcessesTap,
+    this.isLoadingProcesses = false,
   });
 
   @override
@@ -49,9 +57,15 @@ class HomeContent extends StatelessWidget {
           const SizedBox(height: 20),
 
           NewProcessCtaCard(onTap: onNewProcessTap),
+          const SizedBox(height: 12),
+
+          TrackProcessesCtaCard(onTap: onTrackProcessesTap),
           const SizedBox(height: 28),
 
-          OngoingProcessesSection(processes: processes),
+          OngoingProcessesSection(
+          processes: processes,
+          isLoading: isLoadingProcesses,
+        ),
         ],
       ),
     );

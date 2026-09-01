@@ -9,8 +9,16 @@ class ProcessCatalogMockService implements ProcessCatalogService {
   @override
   Future<ServiceCatalog> loadCatalog() async {
     await Future.delayed(const Duration(milliseconds: 800));
+    return kMockServiceCatalog;
+  }
+}
 
-    return const ServiceCatalog(
+/// Catálogo do mock, exposto como constante para o mock de submissão poder
+/// resolver o nome do assunto sem uma chamada assíncrona.
+///
+/// Acoplamento entre mocks é honesto: o backend de verdade conhece o próprio
+/// catálogo ao criar o protocolo.
+const kMockServiceCatalog = ServiceCatalog(
       categories: [
         ServiceCategory(id: 'amb', name: 'Meio ambiente'),
         ServiceCategory(id: 'obr', name: 'Obras e infraestrutura'),
@@ -76,6 +84,4 @@ class ProcessCatalogMockService implements ProcessCatalogService {
         Department(id: 'sesau', name: 'Secretaria de Saúde'),
         Department(id: 'sefaz', name: 'Secretaria da Fazenda'),
       ],
-    );
-  }
-}
+);

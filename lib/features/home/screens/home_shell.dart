@@ -2,11 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import '../../../core/models/process_model.dart';
+import '../../../core/models/process_query.dart';
+import '../../../core/services/mock/process_list_mock_service.dart';
+import '../../../core/services/process_list_service.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/logout_action.dart';
 import '../../account/screens/account_screen.dart';
 import '../../new_process/screens/new_process_screen.dart';
+import '../../processes/screens/processes_screen.dart';
 import '../models/home_panel.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/home_content.dart';
@@ -60,20 +64,12 @@ class _HomeShellState extends State<HomeShell>
   /// `widget.user` direto.
   late UserModel _user = widget.user;
 
-  /// Protocolos em andamento. Estava como `static final` dentro do
-  /// HomeContent — estado estático sobrevive ao logout e, quando o login for
-  /// de verdade, mostraria os dados do usuário anterior para o próximo.
-  // TODO: dado mockado — substituir pela listagem real do backend.
-  late List<ProcessModel> _processes = [
-    ProcessModel(
-      id: '001',
-      type: 'Declaração de Tempo de Serviço',
-      status: ProcessStatus.emTramitacao,
-      date: DateTime.now().subtract(const Duration(days: 2)),
-      protocolNumber: '000123/2026',
-      requesterMaskedCpf: '123.***.***-00',
-    ),
-  ];
+  final ProcessListService _processListService = ProcessListMockService();
+
+  /// Protocolos em andamento. A mesma fonte que a tela de acompanhamento lê —
+  /// sem isso, um protocolo criado aqui não apareceria lá.
+  List<ProcessModel> _processes = const [];
+  bool _loadingProcesses = true;
 
   /// Instância memoizada para a subárvore não reconstruir a cada setState do
   /// shell. Trocada deliberadamente quando o usuário ou a lista mudam —
@@ -82,6 +78,27 @@ class _HomeShellState extends State<HomeShell>
   /// árvore.
   late Widget _content = _buildHomeContent();
 
+  Future<void> _loadProcesses() async {
+    try {
+      final result = await _processListService.load(ProcessQuery());
+      if (!mounted) return;
+      setState(() {
+        _processes = result.items;
+        _loadingProcesses = false;
+        _content = _buildHomeContent();
+      });
+    } catch (_) {
+      // A Home não tem estado de erro próprio: a lista fica vazia e a tela de
+      // acompanhamento é quem oferece o retry.
+      if (mounted) {
+        setState(() {
+          _loadingProcesses = false;
+          _content = _buildHomeContent();
+        });
+      }
+    }
+  }
+
   /// Um ponto só de construção. Com dois call sites montando o widget na mão,
   /// esquecer um parâmetro daria bug silencioso: a subárvore memoizada
   /// seguiria com a lista velha sem nada avisar.
@@ -89,6 +106,8 @@ class _HomeShellState extends State<HomeShell>
     user: _user,
     processes: _processes,
     onNewProcessTap: _openNewProcess,
+    onTrackProcessesTap: _openProcessList,
+    isLoadingProcesses: _loadingProcesses,
   );
 
   double _panelWidth = 0;
@@ -98,6 +117,12 @@ class _HomeShellState extends State<HomeShell>
   /// FAB e o scrim, cuja opacidade depende de `1 - |t|`, atravessam o zero e
   /// piscam por inteiro no meio do caminho.
   bool _crossing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProcesses();
+  }
 
   @override
   void dispose() {
@@ -249,6 +274,13 @@ class _HomeShellState extends State<HomeShell>
     );
   }
 
+  Future<void> _openProcessList() async {
+    _animateTo(0.0);
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ProcessesScreen()),
+    );
+  }
+
   /// Único caminho para o assistente — FAB, item do menu e card da Home. É
   /// aqui que o protocolo recém-criado entra na lista.
   Future<void> _openNewProcess() async {
@@ -282,6 +314,7 @@ class _HomeShellState extends State<HomeShell>
           builder: (context, _) => BottomNavBar(
             active: _activePanel(_controller.value),
             onSelect: _onNavSelect,
+            onSearchTap: _openProcessList,
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -307,6 +340,7 @@ class _HomeShellState extends State<HomeShell>
                       onAccountTap: _openAccount,
                       onAccessibilityTap: _openAccessibility,
                       onNewProcessTap: _openNewProcess,
+                      onTrackProcessesTap: _openProcessList,
                       onSupportTap: _openSupport,
                       // Reusa o painel que já existe, em vez de duplicar a
                       // lista de avisos numa rota nova.

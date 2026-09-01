@@ -1,6 +1,8 @@
 import '../../models/new_process_request.dart';
 import '../../models/process_model.dart';
 import '../process_submission_service.dart';
+import 'mock_process_store.dart';
+import 'process_catalog_mock_service.dart';
 
 // TODO: remover ao integrar o backend real
 //
@@ -23,14 +25,24 @@ class ProcessSubmissionMockService implements ProcessSubmissionService {
     _sequence++;
     final number = _sequence.toString().padLeft(6, '0');
 
-    return ProcessModel(
+    final process = ProcessModel(
       id: 'mock-$_sequence',
-      type: request.subjectId,
+      // Nome legível, não o id cru: `type` é rótulo de exibição, e o backend
+      // real devolveria o nome do assunto. Sem isto a busca por nome não
+      // encontraria os protocolos recém-criados.
+      type:
+          kMockServiceCatalog.subjectName(request.subjectId) ??
+          request.subjectId,
       status: ProcessStatus.emAnalise,
       date: DateTime.now(),
       protocolNumber: '$number/${DateTime.now().year}',
       // Valor enlatado: NÃO derivar do CPF do usuário logado.
       requesterMaskedCpf: '529.***.***-25',
     );
+
+    // Persiste, como o backend faria: é o que mantém a Home e a listagem
+    // mostrando o mesmo conjunto.
+    MockProcessStore.instance.add(process);
+    return process;
   }
 }
