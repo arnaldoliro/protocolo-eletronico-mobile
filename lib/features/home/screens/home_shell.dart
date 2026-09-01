@@ -11,13 +11,13 @@ import '../../../core/widgets/logout_action.dart';
 import '../../account/screens/account_screen.dart';
 import '../../new_process/screens/new_process_screen.dart';
 import '../../processes/screens/processes_screen.dart';
+import '../../support/screens/support_screen.dart';
 import '../models/home_panel.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/home_content.dart';
 import '../widgets/menu_panel.dart';
 import '../widgets/notices_panel.dart';
 import 'accessibility_screen.dart';
-import 'support_screen.dart';
 
 /// Casca da Home: mantém o conteúdo principal sempre montado e revela
 /// painéis laterais deslizando-o horizontalmente, sem abrir novas rotas.

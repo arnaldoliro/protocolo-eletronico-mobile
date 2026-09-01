@@ -2,17 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_preferences_controller.dart';
 import '../../../core/theme/app_preferences_scope.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../support/screens/support_screen.dart';
 
-/// Barra fixa de acessibilidade: assistente (placeholder), zoom de fonte
-/// (A-/A/A+), alternância de tema claro/escuro e alto contraste.
+/// Barra fixa de acessibilidade: assistente virtual, zoom de fonte (A-/A/A+),
+/// alternância de tema claro/escuro e alto contraste.
 class AccessibilityBar extends StatelessWidget {
   const AccessibilityBar({super.key});
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Em breve'), duration: Duration(seconds: 1)),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +19,11 @@ class AccessibilityBar extends StatelessWidget {
       children: [
         _IconButton(
           icon: Icons.auto_awesome_outlined,
-          semanticsLabel: 'Assistente. Em breve.',
+          semanticsLabel: 'Abrir assistente virtual',
           colors: colors,
-          onTap: () => _showComingSoon(context),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SupportScreen()),
+          ),
         ),
         const SizedBox(width: 8),
         _FontScaleGroup(colors: colors, preferences: preferences),
