@@ -45,8 +45,10 @@ class WizardStepper extends StatelessWidget {
                       child: Container(
                         height: 2,
                         margin: const EdgeInsets.symmetric(horizontal: 6),
+                        // O conector de índice i vem antes do círculo i, então
+                        // se está preenchido o círculo anterior foi concluído.
                         color: i <= currentStep
-                            ? colors.primary
+                            ? colors.statusSuccess
                             : colors.inputBorder,
                       ),
                     ),
@@ -91,7 +93,17 @@ class _StepCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Concluído é verde, ativo é azul, pendente é vazado.
+    final fill = done
+        ? colors.statusSuccess
+        : active
+        ? colors.primary
+        : colors.inputFill;
     final filled = done || active;
+    // Branco fixo reprova o contraste em alto contraste escuro, onde tanto o
+    // primary quanto o statusSuccess são cores claras.
+    final foreground = filled ? onBrandColor(fill) : colors.textMuted;
+
     // Acompanha a escala de fonte em vez de fixar 28dp: travar o tamanho com
     // TextScaler.noScaling faria o número vazar do círculo.
     final size = MediaQuery.textScalerOf(context).scale(28);
@@ -101,19 +113,19 @@ class _StepCircle extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: filled ? colors.primary : colors.inputFill,
+          color: fill,
           border: Border.all(
-            color: filled ? colors.primary : colors.inputBorder,
+            color: filled ? fill : colors.inputBorder,
             width: 2,
           ),
         ),
         child: Center(
           child: done
-              ? Icon(Icons.check, size: size * 0.5, color: Colors.white)
+              ? Icon(Icons.check, size: size * 0.5, color: foreground)
               : Text(
                   '$number',
                   style: TextStyle(
-                    color: active ? Colors.white : colors.textMuted,
+                    color: foreground,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),

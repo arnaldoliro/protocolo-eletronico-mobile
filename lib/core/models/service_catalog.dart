@@ -1,7 +1,18 @@
+import 'dart:collection';
+
+/// Contrato mínimo das listas do catálogo, para a busca por id ser genérica.
+/// Os quatro modelos abaixo já o satisfazem sem mudar nenhum campo.
+abstract interface class CatalogEntry {
+  String get id;
+  String get name;
+}
+
 /// Opções que o cidadão escolhe ao abrir um protocolo. Tudo vem do backend —
 /// o app não deriva, não ordena e não filtra nada.
-class ServiceCategory {
+class ServiceCategory implements CatalogEntry {
+  @override
   final String id;
+  @override
   final String name;
 
   const ServiceCategory({required this.id, required this.name});
@@ -9,23 +20,29 @@ class ServiceCategory {
 
 /// Porte do serviço (simples, intermediário, complexo...). O que cada porte
 /// significa em prazo ou taxa é regra de negócio e vive no backend.
-class ServiceSize {
+class ServiceSize implements CatalogEntry {
+  @override
   final String id;
+  @override
   final String name;
 
   const ServiceSize({required this.id, required this.name});
 }
 
 /// Secretaria / órgão de destino.
-class Department {
+class Department implements CatalogEntry {
+  @override
   final String id;
+  @override
   final String name;
 
   const Department({required this.id, required this.name});
 }
 
-class ServiceSubject {
+class ServiceSubject implements CatalogEntry {
+  @override
   final String id;
+  @override
   final String name;
 
   /// Categoria e secretaria às quais este assunto pertence.
@@ -43,11 +60,19 @@ class ServiceSubject {
   final String categoryId;
   final String departmentId;
 
+  /// Aviso exibido na revisão antes do envio, quando este serviço tem alguma
+  /// particularidade (ex.: gera guia de pagamento).
+  ///
+  /// O TEXTO vem do backend, nunca do app: quais serviços cobram taxa é
+  /// decisão administrativa e muda sem release.
+  final String? paymentNotice;
+
   const ServiceSubject({
     required this.id,
     required this.name,
     required this.categoryId,
     required this.departmentId,
+    this.paymentNotice,
   });
 }
 
@@ -64,4 +89,21 @@ class ServiceCatalog {
     required this.subjects,
     required this.departments,
   });
+
+  String? categoryName(String? id) => _nameOf(categories, id);
+  String? sizeName(String? id) => _nameOf(sizes, id);
+  String? subjectName(String? id) => _nameOf(subjects, id);
+  String? departmentName(String? id) => _nameOf(departments, id);
+
+  ServiceSubject? subjectById(String? id) => _entryOf(subjects, id);
+
+  /// Devolve nulo em vez de lançar: um id que sumiu do catálogo não pode
+  /// derrubar a tela de revisão. `firstWhere` sem `orElse` lança.
+  static String? _nameOf<T extends CatalogEntry>(List<T> items, String? id) =>
+      _entryOf(items, id)?.name;
+
+  static T? _entryOf<T extends CatalogEntry>(List<T> items, String? id) {
+    if (id == null) return null;
+    return items.where((e) => e.id == id).firstOrNull;
+  }
 }

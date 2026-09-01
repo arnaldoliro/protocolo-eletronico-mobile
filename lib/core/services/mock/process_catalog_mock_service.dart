@@ -37,6 +37,9 @@ class ProcessCatalogMockService implements ProcessCatalogService {
           name: 'Licença ambiental',
           categoryId: 'amb',
           departmentId: 'sema',
+          paymentNotice:
+              'Este assunto gera uma guia de pagamento (DAM). A emissão pode '
+              'levar até um minuto — não feche a tela.',
         ),
         ServiceSubject(
           id: 'ilum',
@@ -61,6 +64,9 @@ class ProcessCatalogMockService implements ProcessCatalogService {
           name: 'Revisão de IPTU',
           categoryId: 'trib',
           departmentId: 'sefaz',
+          paymentNotice:
+              'Este assunto gera uma guia de pagamento (DAM). A emissão pode '
+              'levar até um minuto — não feche a tela.',
         ),
       ],
       departments: [

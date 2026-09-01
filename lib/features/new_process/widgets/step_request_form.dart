@@ -11,6 +11,7 @@ import '../models/new_process_draft.dart';
 class StepRequestForm extends StatelessWidget {
   final ServiceCatalog catalog;
   final NewProcessDraft draft;
+  final TextEditingController locationController;
   final TextEditingController descriptionController;
   final TextEditingController observationsController;
   final ValueChanged<NewProcessDraft> onChanged;
@@ -20,6 +21,7 @@ class StepRequestForm extends StatelessWidget {
     super.key,
     required this.catalog,
     required this.draft,
+    required this.locationController,
     required this.descriptionController,
     required this.observationsController,
     required this.onChanged,
@@ -122,6 +124,22 @@ class StepRequestForm extends StatelessWidget {
             onChanged: enabled
                 ? (id) => onChanged(draft.copyWith(departmentId: id))
                 : null,
+          ),
+          const SizedBox(height: 14),
+
+          LabeledTextField(
+            label: 'Local',
+            isRequired: true,
+            hint: 'Ex.: Cemitério Municipal, Rua das Flores, 123',
+            prefixIcon: Icons.place_outlined,
+            helpMessage:
+                'Onde o serviço precisa acontecer. Pode ser um endereço, um '
+                'ponto de referência ou o nome do equipamento público. Não é '
+                'necessariamente o seu endereço.',
+            controller: locationController,
+            textCapitalization: TextCapitalization.sentences,
+            enabled: enabled,
+            onChanged: (v) => onChanged(draft.copyWith(location: v)),
           ),
           const SizedBox(height: 14),
 

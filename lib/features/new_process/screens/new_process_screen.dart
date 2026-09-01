@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/models/process_model.dart';
 import '../../../core/models/service_catalog.dart';
 import '../../../core/services/mock/process_catalog_mock_service.dart';
+import '../../../core/services/mock/process_submission_mock_service.dart';
 import '../../../core/services/process_catalog_service.dart';
+import '../../../core/services/process_submission_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/screen_reader_announcer.dart';
 import '../models/new_process_draft.dart';
-import '../widgets/step_placeholder.dart';
+import '../../account/widgets/account_card.dart';
+import '../widgets/step_documents.dart';
 import '../widgets/step_request_form.dart';
+import '../widgets/step_review.dart';
 import '../widgets/wizard_stepper.dart';
 
 enum _LoadState { loading, error, ready }
@@ -30,8 +35,11 @@ class NewProcessScreen extends StatefulWidget {
 
 class _NewProcessScreenState extends State<NewProcessScreen> {
   final ProcessCatalogService _service = ProcessCatalogMockService();
+  final ProcessSubmissionService _submissionService =
+      ProcessSubmissionMockService();
 
   // Os controllers vivem no pai: assim o texto sobrevive à troca de passo.
+  final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _observationsController = TextEditingController();
 
@@ -44,6 +52,13 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
   /// Só para anunciar a virada "agora dá para continuar" uma única vez.
   bool _lastCanContinue = false;
 
+  bool _isSubmitting = false;
+  String? _submitError;
+
+  /// Preenchido no envio bem-sucedido. É ele que faz o PopScope devolver o
+  /// protocolo em vez de perguntar se o usuário quer descartar.
+  ProcessModel? _created;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +67,7 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
 
   @override
   void dispose() {
+    _locationController.dispose();
     _descriptionController.dispose();
     _observationsController.dispose();
     super.dispose();
@@ -83,6 +99,49 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
     _lastCanContinue = canContinue;
   }
 
+  Future<void> _submit() async {
+    if (_isSubmitting) return;
+
+    // Revalida na fronteira: o estado pode ter mudado desde a última pintura.
+    final request = _draft.toRequest();
+    if (request == null) return;
+
+    setState(() {
+      _isSubmitting = true;
+      _submitError = null;
+    });
+
+    try {
+      final created = await _submissionService.submit(request);
+      if (!mounted) return;
+      setState(() => _created = created);
+      announceToScreenReader(
+        context,
+        'Protocolo enviado. Número ${created.protocolNumber}.',
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _submitError =
+              'Não foi possível enviar o protocolo. Tente novamente.',
+        );
+        announceToScreenReader(context, 'Falha ao enviar o protocolo.');
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _goToStep(int step) {
+    setState(() => _currentStep = step);
+    // A troca de passo reconstrói o conteúdo inteiro sem gerar fala nenhuma.
+    // Seguro aqui porque é evento de botão, não de digitação.
+    announceToScreenReader(
+      context,
+      'Passo ${step + 1} de ${_stepLabels.length}, ${_stepLabels[step]}.',
+    );
+  }
+
   Future<void> _confirmDiscard() async {
     final discard = await showConfirmDialog(
       context,
@@ -103,9 +162,18 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
       // O voltar do AppBar e o gesto do sistema saem da tela pelo mesmo
       // caminho. Divergir faria o usuário não conseguir prever se perde o que
       // digitou; para voltar um passo existe o botão "Voltar" do rodapé.
+      // Continua falso mesmo depois de enviar: liberar o pop faria o botão do
+      // sistema popar com null e a Home perderia o protocolo criado. Quem
+      // decide é o callback. Navigator.pop imperativo não consulta o canPop,
+      // então o pop(_created) abaixo passa direto.
       canPop: _draft.isEmpty,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        if (_created != null) {
+          Navigator.of(context).pop(_created);
+          return;
+        }
+        if (_isSubmitting) return;
         _confirmDiscard();
       },
       child: Scaffold(
@@ -116,13 +184,15 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
           foregroundColor: colors.inputText,
           elevation: 0,
         ),
-        body: switch (_state) {
-          _LoadState.loading => Center(
-            child: CircularProgressIndicator(color: colors.primary),
-          ),
-          _LoadState.error => _buildError(colors),
-          _LoadState.ready => _buildContent(colors),
-        },
+        body: _created != null
+            ? _buildSuccess(colors, _created!)
+            : switch (_state) {
+                _LoadState.loading => Center(
+                  child: CircularProgressIndicator(color: colors.primary),
+                ),
+                _LoadState.error => _buildError(colors),
+                _LoadState.ready => _buildContent(colors),
+              },
       ),
     );
   }
@@ -168,6 +238,73 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
     );
   }
 
+  /// Substitui o corpo inteiro — sem trilha e sem rodapé de navegação: o
+  /// assistente acabou.
+  Widget _buildSuccess(AppColors colors, ProcessModel created) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AccountCard(
+            icon: Icons.check_circle_outline,
+            title: 'Protocolo aberto',
+            description:
+                'Sua solicitação foi encaminhada para a secretaria escolhida. '
+                'Anote o número abaixo para acompanhar.',
+            accent: colors.statusSuccess,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: BoxDecoration(
+                    color: colors.statusSuccessBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colors.statusSuccess),
+                  ),
+                  child: Semantics(
+                    label: 'Número do protocolo',
+                    value: created.protocolNumber,
+                    readOnly: true,
+                    child: ExcludeSemantics(
+                      child: Text(
+                        created.protocolNumber,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: colors.inputText,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).pop(created),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primary,
+                    foregroundColor: onBrandColor(colors.primary),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 4,
+                    shadowColor: colors.primary.withValues(alpha: 0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.list_alt_outlined, size: 20),
+                  label: const Text('Ver meus protocolos'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContent(AppColors colors) {
     final missing = missingRequirements(_draft);
     final canContinue = missing.isEmpty;
@@ -187,22 +324,13 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
             0 => StepRequestForm(
               catalog: _catalog!,
               draft: _draft,
+              locationController: _locationController,
               descriptionController: _descriptionController,
               observationsController: _observationsController,
               onChanged: _onDraftChanged,
             ),
-            1 => const StepPlaceholder(
-              icon: Icons.attach_file_outlined,
-              title: 'Documentos',
-              description:
-                  'Anexe os documentos exigidos para este tipo de serviço.',
-            ),
-            _ => const StepPlaceholder(
-              icon: Icons.fact_check_outlined,
-              title: 'Confirmar',
-              description:
-                  'Revise os dados da solicitação antes de enviar ao setor.',
-            ),
+            1 => const StepDocuments(),
+            _ => StepReview(catalog: _catalog!, draft: _draft),
           },
           const SizedBox(height: 20),
 
@@ -220,6 +348,16 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
               ),
             ),
 
+          if (_submitError != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                _submitError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: colors.statusError, fontSize: 13),
+              ),
+            ),
+
           _buildFooter(colors, canContinue: canContinue, missing: missing),
         ],
       ),
@@ -232,19 +370,22 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
     required List<String> missing,
   }) {
     final isLastStep = _currentStep == _stepLabels.length - 1;
-    // No passo 0 o Continuar depende da validação; os passos seguintes são
-    // placeholders e não têm o que validar.
-    final enabled = _currentStep == 0 ? canContinue : !isLastStep;
+    // No passo 0 depende da validação; o passo 2 (documentos) é opcional; no
+    // último o botão envia.
+    final enabled = (_currentStep == 0 ? canContinue : true) && !_isSubmitting;
+    final onPrimary = onBrandColor(colors.primary);
 
     final continueButton = ElevatedButton.icon(
       onPressed: enabled
-          ? () => setState(() => _currentStep = _currentStep + 1)
+          ? (isLastStep ? _submit : () => _goToStep(_currentStep + 1))
           : null,
       style: ElevatedButton.styleFrom(
         backgroundColor: colors.primary,
-        foregroundColor: Colors.white,
+        // Branco fixo reprova o contraste em alto contraste escuro, onde o
+        // primary é claro.
+        foregroundColor: onPrimary,
         disabledBackgroundColor: colors.primary.withValues(alpha: 0.3),
-        disabledForegroundColor: Colors.white.withValues(alpha: 0.6),
+        disabledForegroundColor: onPrimary.withValues(alpha: 0.6),
         padding: const EdgeInsets.symmetric(vertical: 16),
         elevation: enabled ? 4 : 0,
         shadowColor: colors.primary.withValues(alpha: 0.4),
@@ -252,8 +393,21 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      icon: const Icon(Icons.arrow_forward, size: 20),
-      label: const Text('Continuar'),
+      icon: _isSubmitting
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: onPrimary,
+              ),
+            )
+          : Icon(isLastStep ? Icons.send : Icons.arrow_forward, size: 20),
+      label: Text(
+        _isSubmitting
+            ? 'Enviando...'
+            : (isLastStep ? 'Enviar protocolo' : 'Continuar'),
+      ),
     );
 
     return Row(
@@ -261,7 +415,9 @@ class _NewProcessScreenState extends State<NewProcessScreen> {
         if (_currentStep > 0) ...[
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: () => setState(() => _currentStep = _currentStep - 1),
+              onPressed: _isSubmitting
+                  ? null
+                  : () => _goToStep(_currentStep - 1),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.primary,
                 side: BorderSide(color: colors.inputBorder),

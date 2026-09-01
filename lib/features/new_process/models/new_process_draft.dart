@@ -1,3 +1,5 @@
+import '../../../core/models/new_process_request.dart';
+
 /// Mínimo de caracteres na descrição para o formulário poder avançar.
 ///
 /// É só UX — evita mandar ao setor uma solicitação vazia demais para ser
@@ -14,6 +16,7 @@ class NewProcessDraft {
   final String? sizeId;
   final String? subjectId;
   final String? departmentId;
+  final String location;
   final String description;
   final String observations;
 
@@ -22,6 +25,7 @@ class NewProcessDraft {
     this.sizeId,
     this.subjectId,
     this.departmentId,
+    this.location = '',
     this.description = '',
     this.observations = '',
   });
@@ -31,6 +35,7 @@ class NewProcessDraft {
     String? sizeId,
     String? subjectId,
     String? departmentId,
+    String? location,
     String? description,
     String? observations,
   }) {
@@ -39,6 +44,7 @@ class NewProcessDraft {
       sizeId: sizeId ?? this.sizeId,
       subjectId: subjectId ?? this.subjectId,
       departmentId: departmentId ?? this.departmentId,
+      location: location ?? this.location,
       description: description ?? this.description,
       observations: observations ?? this.observations,
     );
@@ -52,12 +58,30 @@ class NewProcessDraft {
       sizeId == null &&
       subjectId == null &&
       departmentId == null &&
+      location.trim().isEmpty &&
       description.trim().isEmpty &&
       observations.trim().isEmpty;
 
   int get descriptionLength => description.trim().length;
 
   bool get hasEnoughDescription => descriptionLength >= kMinDescriptionLength;
+
+  /// Converte para o request do backend, ou nulo se ainda falta algo.
+  ///
+  /// A estreita de tipo (String? -> String) acontece só aqui, coberta pela
+  /// guarda, em vez de espalhar `!` por cinco campos na tela.
+  NewProcessRequest? toRequest() {
+    if (missingRequirements(this).isNotEmpty) return null;
+    return NewProcessRequest(
+      categoryId: categoryId!,
+      sizeId: sizeId!,
+      subjectId: subjectId!,
+      departmentId: departmentId!,
+      location: location.trim(),
+      description: description.trim(),
+      observations: observations.trim(),
+    );
+  }
 }
 
 /// O que ainda falta para o passo 1 poder avançar, na ordem visual dos campos.
@@ -73,6 +97,7 @@ List<String> missingRequirements(NewProcessDraft draft) {
     if (draft.sizeId == null) 'escolher o porte do serviço',
     if (draft.subjectId == null) 'escolher o assunto',
     if (draft.departmentId == null) 'escolher a secretaria de destino',
+    if (draft.location.trim().isEmpty) 'informar o local',
     if (!draft.hasEnoughDescription)
       'descrever a solicitação com pelo menos $kMinDescriptionLength caracteres',
   ];

@@ -32,6 +32,43 @@ class OngoingProcessesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+        if (processes.isEmpty)
+          // Sem isto sobra só o título solto quando a lista está vazia — o que
+          // passou a ser alcançável agora que ela é estado dinâmico.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: colors.cardShadow,
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.inbox_outlined,
+                  size: 40,
+                  color: colors.textMuted,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Nenhum protocolo em andamento',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: colors.inputText,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Quando você abrir um protocolo, ele aparece aqui.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: colors.textMuted, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
         ...processes.map(
           (p) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
