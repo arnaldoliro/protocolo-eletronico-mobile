@@ -2,16 +2,30 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/home_panel.dart';
 
-/// Barra inferior fixa com 3 itens: Menu (esquerda), Home (centro) e
-/// Avisos (direita). Nenhum deles navega — o [HomeShell] traduz a seleção
-/// em deslizamento dos painéis laterais.
+/// Barra inferior fixa com 4 itens: Menu, Home, Buscar e Avisos.
+///
+/// Menu, Home e Avisos NÃO navegam — o [HomeShell] traduz a seleção em
+/// deslizamento dos painéis laterais. Buscar é a exceção: abre uma rota, e
+/// por isso não pertence ao [HomePanel] (que descreve a posição do deslize) e
+/// nunca aparece marcado como ativo.
+///
+/// Com 4 itens o Home deixa de cair no centro exato da barra — decisão
+/// consciente ao acrescentar a busca.
 ///
 /// Widget controlado: o estado de qual painel está ativo vive no shell.
 class BottomNavBar extends StatelessWidget {
   final HomePanel active;
   final ValueChanged<HomePanel> onSelect;
 
-  const BottomNavBar({super.key, required this.active, required this.onSelect});
+  /// Abre a tela de acompanhamento. É ação, não seleção de painel.
+  final VoidCallback onSearchTap;
+
+  const BottomNavBar({
+    super.key,
+    required this.active,
+    required this.onSelect,
+    required this.onSearchTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +42,8 @@ class BottomNavBar extends StatelessWidget {
         // escala de fonte, em vez de estourar em RenderFlex overflow.
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 68),
-          // Expanded em cada item garante 1/3 exato da largura para cada um,
-          // então o Home fica no centro matemático da barra independente do
-          // tamanho dos textos ou da escala de fonte.
+          // Expanded em cada item garante 1/4 exato da largura para cada um,
+          // independente do tamanho dos textos ou da escala de fonte.
           child: Row(
             children: [
               Expanded(
@@ -53,6 +66,17 @@ class BottomNavBar extends StatelessWidget {
               ),
               Expanded(
                 child: _NavItem(
+                  icon: Icons.search,
+                  label: 'Buscar',
+                  // Nulo marca item de ação: sem estado de seleção, e o
+                  // leitor de tela não anuncia "não selecionado".
+                  isSelected: null,
+                  colors: colors,
+                  onTap: onSearchTap,
+                ),
+              ),
+              Expanded(
+                child: _NavItem(
                   icon: Icons.notifications_none_outlined,
                   label: 'Avisos',
                   isSelected: active == HomePanel.notices,
@@ -71,7 +95,10 @@ class BottomNavBar extends StatelessWidget {
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
-  final bool isSelected;
+
+  /// Nulo quando o item é uma ação, não um painel selecionável.
+  final bool? isSelected;
+
   final AppColors colors;
   final VoidCallback onTap;
 
@@ -85,7 +112,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? colors.primary : colors.navInactive;
+    final color = isSelected == true ? colors.primary : colors.navInactive;
 
     return Semantics(
       button: true,

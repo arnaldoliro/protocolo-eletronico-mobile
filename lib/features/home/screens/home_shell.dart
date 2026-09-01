@@ -314,6 +314,7 @@ class _HomeShellState extends State<HomeShell>
           builder: (context, _) => BottomNavBar(
             active: _activePanel(_controller.value),
             onSelect: _onNavSelect,
+            onSearchTap: _openProcessList,
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
