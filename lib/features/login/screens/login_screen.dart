@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/mock/auth_mock_service.dart';
+import '../../../core/tenant/municipality_scope.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/auth_background.dart';
 import '../../../core/widgets/custom_text_field.dart';
@@ -90,6 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const _MunicipalityLine(),
+              const SizedBox(height: 24),
+
               CustomTextField(
                 label: 'E-mail',
                 keyboardType: TextInputType.emailAddress,
@@ -156,6 +160,77 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Município escolhido, com atalho para trocar.
+///
+/// A linha inteira é o alvo de toque, em vez de um botão separado ao lado:
+/// assim não há dois alvos competindo, e um nome longo como "São José do Rio
+/// Preto" ocupa o espaço que precisar em vez de disputar largura.
+///
+/// Daqui a troca vai direto ao seletor, sem confirmação — ninguém está
+/// autenticado ainda, não há nada a descartar.
+class _MunicipalityLine extends StatelessWidget {
+  const _MunicipalityLine();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final municipality = MunicipalityScope.of(context).selected;
+
+    // Defensivo: se o dado sumir, a tela não quebra — só não mostra a linha.
+    if (municipality == null) return const SizedBox.shrink();
+
+    return Semantics(
+      button: true,
+      label: 'Município: ${municipality.label}. Toque para trocar.',
+      child: ExcludeSemantics(
+        child: Material(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => Navigator.of(context)
+                .pushNamedAndRemoveUntil('/municipality', (_) => false),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: colors.inputBorder),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.place_outlined, size: 18, color: colors.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      municipality.label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.inputText,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Trocar',
+                    style: TextStyle(
+                      color: colors.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

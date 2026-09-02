@@ -12,6 +12,7 @@ class MenuPanel extends StatelessWidget {
   final VoidCallback onTrackProcessesTap;
   final VoidCallback onSupportTap;
   final VoidCallback onNoticesTap;
+  final VoidCallback onChangeMunicipalityTap;
   final VoidCallback onLogoutTap;
 
   const MenuPanel({
@@ -23,6 +24,7 @@ class MenuPanel extends StatelessWidget {
     required this.onTrackProcessesTap,
     required this.onSupportTap,
     required this.onNoticesTap,
+    required this.onChangeMunicipalityTap,
     required this.onLogoutTap,
   });
 
@@ -134,6 +136,15 @@ class MenuPanel extends StatelessWidget {
                     label: 'Avisos',
                     colors: colors,
                     onTap: onNoticesTap,
+                  ),
+                  // Último da lista: é ação rara, de escopo do app e não do
+                  // protocolo. Fica perto do rodapé sem ser pintada de
+                  // destrutiva como o "Sair".
+                  _MenuTile(
+                    icon: Icons.place_outlined,
+                    label: 'Trocar município',
+                    colors: colors,
+                    onTap: onChangeMunicipalityTap,
                   ),
                 ],
               ),

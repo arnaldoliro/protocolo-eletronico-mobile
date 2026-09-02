@@ -7,6 +7,7 @@ import '../../../core/services/mock/process_list_mock_service.dart';
 import '../../../core/services/process_list_service.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/tenant/change_municipality_action.dart';
 import '../../../core/widgets/logout_action.dart';
 import '../../account/screens/account_screen.dart';
 import '../../new_process/screens/new_process_screen.dart';
@@ -295,6 +296,13 @@ class _HomeShellState extends State<HomeShell>
   /// TODO(auth) sobre invalidar sessão precisa viver num lugar só.
   Future<void> _logout() => confirmAndLogout(context);
 
+  /// Fecha o painel antes: o diálogo aparece sobre a tela, não sobre o menu
+  /// escancarado.
+  Future<void> _changeMunicipality() {
+    _animateTo(0.0);
+    return confirmAndChangeMunicipality(context);
+  }
+
   // ---------------------------------------------------------------- build
 
   @override
@@ -345,6 +353,7 @@ class _HomeShellState extends State<HomeShell>
                       // Reusa o painel que já existe, em vez de duplicar a
                       // lista de avisos numa rota nova.
                       onNoticesTap: () => _onNavSelect(HomePanel.notices),
+                      onChangeMunicipalityTap: _changeMunicipality,
                       onLogoutTap: _logout,
                     ),
                   ),
